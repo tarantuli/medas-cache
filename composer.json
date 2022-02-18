@@ -1,0 +1,25 @@
+{
+    "name": "morphp/medas-cache",
+    "description": "Medas cache",
+    "authors": [
+        {
+            "name": "Patrick Morpey",
+            "email": "patrick@morphp.nl"
+        }
+    ],
+    "type": "library",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "morphp/medas-service-manager": "@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Medas\\Cache\\": "src/",
+            "Medas\\CacheTest\\": "tests/"
+        }
+    }
+}
