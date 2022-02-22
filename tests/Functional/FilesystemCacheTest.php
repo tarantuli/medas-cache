@@ -33,16 +33,7 @@ class FilesystemCacheTest extends TestCase
 
         $closure = fn() => 'a value';
 
-        $singleValue = $cache->get('testSerializeClosure', fn() => $closure);
-        self::assertInstanceOf(\Closure::class, $singleValue);
-
-        $singleValue = $cache->get('testSerializeClosure', fn() => $closure);
-        self::assertInstanceOf(\Closure::class, $singleValue);
-
-        $multipleValues = $cache->get('testSerializeClosures', fn() => [$closure, $closure]);
-        self::assertInstanceOf(\Closure::class, $multipleValues[0]);
-
-        $multipleValues = $cache->get('testSerializeClosures', fn() => [$closure, $closure]);
-        self::assertInstanceOf(\Closure::class, $multipleValues[0]);
+        $this->expectException(\Exception::class);
+        $cache->get('testSerializeClosure', fn() => $closure);
     }
 }

@@ -13,8 +13,7 @@
     "require": {
         "morphp/medas-service-manager": "dev-dev",
         "morphp/medas-config-manager": "dev-dev",
-        "morphp/medas-file-system": "dev-dev",
-        "opis/closure": "^3.6"
+        "morphp/medas-file-system": "dev-dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5"

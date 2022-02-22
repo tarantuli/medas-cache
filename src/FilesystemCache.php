@@ -23,13 +23,27 @@ class FilesystemCache extends BaseCache
         return file_get_contents($this->getPath($key));
     }
 
-    public function store(string $key, string $value): void
+    public function store(string|array $key, string $normalizedKey, string $value): void
     {
         if (!file_exists($this->namespace)) {
             mkdir($this->namespace);
         }
 
-        file_put_contents($this->getPath($key), $value);
+        file_put_contents($this->getPath($normalizedKey), $value);
+        $this->registerKey($key, $normalizedKey);
+    }
+
+    private function registerKey(array|string $key, string $normalizedKey): void
+    {
+        $keyFile = $this->getPath('key_index');
+        $keys = file_exists($keyFile) ? json_decode(file_get_contents($keyFile), true) : [];
+
+        if (array_key_exists($normalizedKey, $keys)) {
+            return;
+        }
+
+        $keys[$normalizedKey] = $key;
+        file_put_contents($keyFile, json_encode($keys, JSON_PRETTY_PRINT));
     }
 
     public function delete(string $key): void

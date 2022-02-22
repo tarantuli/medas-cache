@@ -12,7 +12,7 @@ abstract class BaseCache implements Cache, Clearable
 
     abstract public function fetch(string $key): string;
 
-    abstract public function store(string $key, string $value): void;
+    abstract public function store(string|array $key, string $normalizedKey, string $value): void;
 
     abstract public function delete(string $key): void;
 
@@ -31,15 +31,15 @@ abstract class BaseCache implements Cache, Clearable
 
     public function get(array|string $key, callable $getter): mixed
     {
-        $key = $this->normalizeKey($key);
+        $normalizedKey = $this->normalizeKey($key);
 
-        if ($this->exists($key)) {
-            $serializedValue = $this->fetch($key);
+        if ($this->exists($normalizedKey)) {
+            $serializedValue = $this->fetch($normalizedKey);
             $value = $this->serializer->unserialize($serializedValue);
         } else {
             $value = $getter();
             $serializedValue = $this->serializer->serialize($value);
-            $this->store($key, $serializedValue);
+            $this->store($key, $normalizedKey, $serializedValue);
         }
 
         return $value;
