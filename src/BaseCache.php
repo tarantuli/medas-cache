@@ -10,19 +10,23 @@ abstract class BaseCache implements Cache, Clearable
 {
     abstract public function exists(string $key): bool;
 
-    abstract public function fetch(string $key): mixed;
+    abstract public function fetch(string $key): string;
 
-    abstract public function store(string $key, mixed $value): void;
+    abstract public function store(string $key, string $value): void;
 
     abstract public function delete(string $key): void;
 
     abstract public function isSupported(): bool;
+
+    private Interfaces\Serializer $serializer;
 
     public function __construct(protected string $namespace)
     {
         if (!$this->isSupported()) {
             throw new CacheTypeNotSupportedException(static::class);
         }
+
+        $this->serializer = service(Interfaces\Serializer::class);
     }
 
     public function get(array|string $key, callable $getter): mixed
@@ -30,10 +34,12 @@ abstract class BaseCache implements Cache, Clearable
         $key = $this->normalizeKey($key);
 
         if ($this->exists($key)) {
-            $value = $this->fetch($key);
+            $serializedValue = $this->fetch($key);
+            $value = $this->serializer->unserialize($serializedValue);
         } else {
             $value = $getter();
-            $this->store($key, $value);
+            $serializedValue = $this->serializer->serialize($value);
+            $this->store($key, $serializedValue);
         }
 
         return $value;

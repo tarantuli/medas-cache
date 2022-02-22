@@ -18,18 +18,18 @@ class FilesystemCache extends BaseCache
         return $this->namespace . DIRECTORY_SEPARATOR . $key;
     }
 
-    public function fetch(string $key): mixed
+    public function fetch(string $key): string
     {
-        return unserialize(file_get_contents($this->getPath($key)));
+        return file_get_contents($this->getPath($key));
     }
 
-    public function store(string $key, mixed $value): void
+    public function store(string $key, string $value): void
     {
         if (!file_exists($this->namespace)) {
             mkdir($this->namespace);
         }
 
-        file_put_contents($this->getPath($key), serialize($value));
+        file_put_contents($this->getPath($key), $value);
     }
 
     public function delete(string $key): void
