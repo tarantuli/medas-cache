@@ -38,7 +38,7 @@ class CacheManager
         $this->caches[] = $cache;
     }
 
-    public function clear(): void
+    public function clearAll(): void
     {
         foreach ($this->caches as $cache) {
             if ($cache instanceof Clearable) {

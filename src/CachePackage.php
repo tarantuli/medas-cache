@@ -20,4 +20,9 @@ class CachePackage extends BasePackage
     {
         return __DIR__;
     }
+
+    public function postComposerInstall(): void
+    {
+        service(CacheManager::class)->clearAll();
+    }
 }
