@@ -11,12 +11,12 @@ class NoopCache extends BaseCache
         return false;
     }
 
-    public function fetch(string $key): string
+    public function fetch(string $key): mixed
     {
         throw new \Exception('this cache should never fetch');
     }
 
-    public function store(array|string $key, string $normalizedKey, string $value): void
+    public function store(string $key, mixed $value): void
     {
         // Do nothing
     }

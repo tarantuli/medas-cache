@@ -13,14 +13,14 @@ class MemoryCache extends BaseCache
         return array_key_exists($key, $this->data);
     }
 
-    public function fetch(string $key): string
+    public function fetch(string $key): mixed
     {
         return $this->data[$key];
     }
 
-    public function store(array|string $key, string $normalizedKey, string $value): void
+    public function store(string $key, mixed $value): void
     {
-        $this->data[$normalizedKey] = $value;
+        $this->data[$key] = $value;
     }
 
     public function delete(string $key): void

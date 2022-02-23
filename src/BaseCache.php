@@ -5,28 +5,32 @@ declare(strict_types=1);
 namespace Medas\Cache;
 
 use Medas\Cache\Exceptions\CacheTypeNotSupportedException;
+use Medas\Cache\Interfaces\HasKeyRegister;
 
 abstract class BaseCache implements Cache, Clearable
 {
     abstract public function exists(string $key): bool;
 
-    abstract public function fetch(string $key): string;
+    abstract public function fetch(string $key): mixed;
 
-    abstract public function store(string|array $key, string $normalizedKey, string $value): void;
+    abstract public function store(string $key, mixed $value): void;
 
     abstract public function delete(string $key): void;
 
     abstract public function isSupported(): bool;
 
-    private Interfaces\Serializer $serializer;
+    protected Interfaces\Serializer $serializer;
 
-    public function __construct(protected string $namespace)
+    public function __construct(
+        protected string      $namespace,
+        Interfaces\Serializer $serializer = null,
+    )
     {
         if (!$this->isSupported()) {
             throw new CacheTypeNotSupportedException(static::class);
         }
 
-        $this->serializer = service(Interfaces\Serializer::class);
+        $this->serializer = $serializer ?? service(Interfaces\Serializer::class);
     }
 
     public function get(array|string $key, callable $getter): mixed
@@ -34,12 +38,14 @@ abstract class BaseCache implements Cache, Clearable
         $normalizedKey = $this->normalizeKey($key);
 
         if ($this->exists($normalizedKey)) {
-            $serializedValue = $this->fetch($normalizedKey);
-            $value = $this->serializer->unserialize($serializedValue);
+            $value = $this->fetch($normalizedKey);
         } else {
             $value = $getter();
-            $serializedValue = $this->serializer->serialize($value);
-            $this->store($key, $normalizedKey, $serializedValue);
+            $this->store($normalizedKey, $value);
+
+            if ($this instanceof HasKeyRegister) {
+                $this->registerKey($key, $normalizedKey);
+            }
         }
 
         return $value;

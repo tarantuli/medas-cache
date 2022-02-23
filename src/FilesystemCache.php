@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
+use Medas\Cache\Interfaces\HasKeyRegister;
 use Medas\FileSystem\DirectoryManager;
 
-class FilesystemCache extends MemoryCache
+class FilesystemCache extends MemoryCache implements HasKeyRegister
 {
     public function exists(string $key): bool
     {
@@ -18,24 +19,33 @@ class FilesystemCache extends MemoryCache
         return $this->namespace . DIRECTORY_SEPARATOR . $key;
     }
 
-    public function fetch(string $key): string
+    public function fetch(string $key): mixed
     {
-        return parent::exists($key) ? parent::fetch($key) : file_get_contents($this->getPath($key));
+        if (parent::exists($key)) {
+            return parent::fetch($key);
+        }
+
+        $serializedValue = file_get_contents($this->getPath($key));
+        $value = $this->serializer->unserialize($serializedValue);
+
+        parent::store($key, $value);
+
+        return $value;
     }
 
-    public function store(string|array $key, string $normalizedKey, string $value): void
+    public function store(string $key, mixed $value): void
     {
+        parent::store($key, $value);
+
         if (!file_exists($this->namespace)) {
             mkdir($this->namespace);
         }
 
-        file_put_contents($this->getPath($normalizedKey), $value);
-        $this->registerKey($key, $normalizedKey);
-
-        parent::store($key, $normalizedKey, $value);
+        $serializedValue = $this->serializer->serialize($value);
+        file_put_contents($this->getPath($key), $serializedValue);
     }
 
-    private function registerKey(array|string $key, string $normalizedKey): void
+    public function registerKey(array|string $key, string $normalizedKey): void
     {
         $keyFile = $this->getPath('key_index');
         $keys = file_exists($keyFile) ? json_decode(file_get_contents($keyFile), true) : [];
