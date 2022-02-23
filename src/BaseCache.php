@@ -6,6 +6,7 @@ namespace Medas\Cache;
 
 use Medas\Cache\Exceptions\CacheTypeNotSupportedException;
 use Medas\Cache\Interfaces\HasKeyRegister;
+use Medas\ServiceManager\Interfaces\{Cache, Clearable};
 
 abstract class BaseCache implements Cache, Clearable
 {
