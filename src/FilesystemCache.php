@@ -6,11 +6,11 @@ namespace Medas\Cache;
 
 use Medas\FileSystem\DirectoryManager;
 
-class FilesystemCache extends BaseCache
+class FilesystemCache extends MemoryCache
 {
     public function exists(string $key): bool
     {
-        return file_exists($this->getPath($key));
+        return parent::exists($key) || file_exists($this->getPath($key));
     }
 
     private function getPath(string $key): string
@@ -20,7 +20,7 @@ class FilesystemCache extends BaseCache
 
     public function fetch(string $key): string
     {
-        return file_get_contents($this->getPath($key));
+        return parent::exists($key) ? parent::fetch($key) : file_get_contents($this->getPath($key));
     }
 
     public function store(string|array $key, string $normalizedKey, string $value): void
@@ -31,6 +31,8 @@ class FilesystemCache extends BaseCache
 
         file_put_contents($this->getPath($normalizedKey), $value);
         $this->registerKey($key, $normalizedKey);
+
+        parent::store($key, $normalizedKey, $value);
     }
 
     private function registerKey(array|string $key, string $normalizedKey): void
@@ -53,6 +55,8 @@ class FilesystemCache extends BaseCache
         if (file_exists($path)) {
             unlink($path);
         }
+
+        parent::delete($key);
     }
 
     public function isSupported(): bool
@@ -71,5 +75,7 @@ class FilesystemCache extends BaseCache
         foreach ($files as $file) {
             unlink($file);
         }
+
+        parent::clear();
     }
 }
