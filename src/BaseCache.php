@@ -20,18 +20,18 @@ abstract class BaseCache implements Cache, Clearable
 
     abstract public function isSupported(): bool;
 
-    protected Interfaces\Serializer $serializer;
-
     public function __construct(
         protected string      $namespace,
-        Interfaces\Serializer $serializer = null,
+        protected Interfaces\Serializer|null $serializer = null,
     )
     {
         if (!$this->isSupported()) {
             throw new CacheTypeNotSupportedException(static::class);
         }
 
-        $this->serializer = $serializer ?? service(Interfaces\Serializer::class);
+        if ($this->serializer === null) {
+            $this->serializer = new Serializer();
+        }
     }
 
     public function get(array|string $key, callable $getter): mixed
