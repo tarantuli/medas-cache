@@ -6,7 +6,7 @@ namespace Medas\Cache;
 
 use Medas\Cache\Exceptions\CacheTypeNotSupportedException;
 use Medas\Cache\Interfaces\HasKeyRegister;
-use Medas\ServiceManager\Interfaces\{Cache, Clearable};
+use Medas\ServiceManager\Interfaces\{Cache, Clearable, Serializer};
 
 abstract class BaseCache implements Cache, Clearable
 {
@@ -21,8 +21,8 @@ abstract class BaseCache implements Cache, Clearable
     abstract public function isSupported(): bool;
 
     public function __construct(
-        protected string      $namespace,
-        protected Interfaces\Serializer|null $serializer = null,
+        protected string                                           $namespace,
+        protected Serializer|null $serializer = null,
     )
     {
         if (!$this->isSupported()) {
@@ -30,7 +30,7 @@ abstract class BaseCache implements Cache, Clearable
         }
 
         if ($this->serializer === null) {
-            $this->serializer = new Serializer();
+            $this->serializer = new \Medas\ServiceManager\Serialization\Serializer();
         }
     }
 
