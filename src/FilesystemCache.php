@@ -6,9 +6,18 @@ namespace Medas\Cache;
 
 use Medas\Cache\Interfaces\HasKeyRegister;
 use Medas\FileSystem\DirectoryManager;
+use Medas\ServiceManager\Interfaces\Serializer;
 
 class FilesystemCache extends MemoryCache implements HasKeyRegister
 {
+    private DirectoryManager $directoryManager;
+
+    public function __construct(string $namespace, ?Serializer $serializer = null)
+    {
+        parent::__construct($namespace, $serializer);
+        $this->directoryManager = service(DirectoryManager::class);
+    }
+
     public function exists(string $key): bool
     {
         return parent::exists($key) || file_exists($this->getPath($key));
@@ -16,7 +25,10 @@ class FilesystemCache extends MemoryCache implements HasKeyRegister
 
     private function getPath(string $key): string
     {
-        return $this->namespace . DIRECTORY_SEPARATOR . $key;
+        return $this->namespace
+            . DIRECTORY_SEPARATOR . substr($key, 0, 1)
+            . DIRECTORY_SEPARATOR . substr($key, 1, 1)
+            . DIRECTORY_SEPARATOR . $key;
     }
 
     public function fetch(string $key): mixed
@@ -37,17 +49,16 @@ class FilesystemCache extends MemoryCache implements HasKeyRegister
     {
         parent::store($key, $value);
 
-        if (!file_exists($this->namespace)) {
-            mkdir($this->namespace);
-        }
-
         $serializedValue = $this->serializer->serialize($value);
-        file_put_contents($this->getPath($key), $serializedValue);
+
+        $path = $this->getPath($key);
+        $this->directoryManager->create(pathinfo($path, PATHINFO_DIRNAME));
+        file_put_contents($path, $serializedValue);
     }
 
     public function registerKey(array|string $key, string $normalizedKey): void
     {
-        $keyFile = $this->getPath('key_index');
+        $keyFile = $this->namespace . DIRECTORY_SEPARATOR . 'key_index';
         $keys = file_exists($keyFile) ? json_decode(file_get_contents($keyFile), true) : [];
 
         if (array_key_exists($normalizedKey, $keys)) {
@@ -72,7 +83,7 @@ class FilesystemCache extends MemoryCache implements HasKeyRegister
     public function isSupported(): bool
     {
         if (!file_exists($this->namespace)) {
-            service(DirectoryManager::class)->create($this->namespace);
+            $this->directoryManager->create($this->namespace);
         }
 
         return is_dir($this->namespace) && is_writeable($this->namespace);
@@ -80,7 +91,7 @@ class FilesystemCache extends MemoryCache implements HasKeyRegister
 
     public function clear(): void
     {
-        $files = service(DirectoryManager::class)->recursiveFind($this->namespace, '//');
+        $files = $this->directoryManager->recursiveFind($this->namespace, '//');
 
         foreach ($files as $file) {
             unlink($file);
