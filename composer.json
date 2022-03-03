@@ -12,7 +12,6 @@
     "prefer-stable": true,
     "require": {
         "morphp/medas-service-manager": "dev-dev",
-        "morphp/medas-config-manager": "dev-dev",
         "morphp/medas-file-system": "dev-dev"
     },
     "require-dev": {
