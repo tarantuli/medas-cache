@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\ServiceManager\{AsSingleton,BasePackage,Cache\CacheManager};
 use Medas\FileSystem\FileSystemPackage;
+use Medas\ServiceManager\{AsSingleton, BasePackage};
 
 class CachePackage extends BasePackage
 {
@@ -14,17 +14,12 @@ class CachePackage extends BasePackage
     public function dependencies(): array
     {
         return $this->dependenciesByClass([
-            FileSystemPackage::class
+            FileSystemPackage::class,
         ]);
     }
 
     public function sourceDirectory(): string
     {
         return __DIR__;
-    }
-
-    public function postComposerInstall(): void
-    {
-        service(CacheManager::class)->clearAll();
     }
 }
