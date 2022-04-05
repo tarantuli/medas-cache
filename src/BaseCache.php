@@ -21,7 +21,6 @@ abstract class BaseCache implements Cache, Clearable
     abstract public function isSupported(): bool;
 
     public function __construct(
-        protected string                                           $namespace,
         protected Serializer|null $serializer = null,
     )
     {

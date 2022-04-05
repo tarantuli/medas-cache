@@ -12,10 +12,10 @@ class FilesystemCache extends MemoryCache implements HasKeyRegister
 {
     private DirectoryManager $directoryManager;
 
-    public function __construct(string $namespace, ?Serializer $serializer = null)
+    public function __construct(private string $namespace, ?Serializer $serializer = null)
     {
         $this->directoryManager = new DirectoryManager();
-        parent::__construct($namespace, $serializer);
+        parent::__construct($serializer);
     }
 
     public function exists(string $key): bool
