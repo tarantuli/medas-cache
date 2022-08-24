@@ -6,9 +6,9 @@ namespace Medas\Cache;
 
 use Medas\Cache\Interfaces\HasKeyRegister;
 use Medas\FileSystem\DirectoryManager;
-use Medas\ServiceManager\Interfaces\Serializer;
+use Medas\ServiceManager\Values\Interfaces\Serializer;
 
-class FilesystemCache extends MemoryCache implements HasKeyRegister
+class FileSystemCache extends MemoryCache implements HasKeyRegister
 {
     private DirectoryManager $directoryManager;
 

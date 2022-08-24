@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Medas\CacheTest\Functional;
 
-use Medas\ServiceManager\Interfaces\Cache;
+use Medas\ServiceManager\Cache\Interfaces\Cache;
 use PHPUnit\Framework\TestCase;
 
 abstract class BaseCacheTest extends TestCase

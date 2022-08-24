@@ -2,4 +2,12 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/bootstrap.php';
+use Medas\Cache\CachePackage;
+use Medas\ServiceManager\ServiceManager;
+
+chdir(__DIR__);
+
+require_once 'vendor/autoload.php';
+
+$sm = ServiceManager::get();
+$sm->addPackage(CachePackage::instance());

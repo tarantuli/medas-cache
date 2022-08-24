@@ -6,7 +6,8 @@ namespace Medas\Cache;
 
 use Medas\Cache\Exceptions\CacheTypeNotSupportedException;
 use Medas\Cache\Interfaces\HasKeyRegister;
-use Medas\ServiceManager\Interfaces\{Cache, Clearable, Serializer};
+use Medas\ServiceManager\Cache\Interfaces\{Cache, Clearable};
+use Medas\ServiceManager\Values\Interfaces\Serializer;
 
 abstract class BaseCache implements Cache, Clearable
 {
@@ -29,7 +30,7 @@ abstract class BaseCache implements Cache, Clearable
         }
 
         if ($this->serializer === null) {
-            $this->serializer = new \Medas\ServiceManager\Serialization\Serializer();
+            $this->serializer = new \Medas\ServiceManager\Values\Serializer();
         }
     }
 
@@ -39,7 +40,8 @@ abstract class BaseCache implements Cache, Clearable
 
         if ($this->exists($normalizedKey)) {
             $value = $this->fetch($normalizedKey);
-        } else {
+        }
+        else {
             $value = $getter();
             $this->store($normalizedKey, $value);
 

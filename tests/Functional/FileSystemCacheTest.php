@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Medas\CacheTest\Functional;
 
-use Medas\Cache\FilesystemCache;
+use Medas\Cache\FileSystemCache;
 
-class FilesystemCacheTest extends BaseCacheTest
+class FileSystemCacheTest extends BaseCacheTest
 {
-    protected function getCache(): FilesystemCache
+    protected function getCache(): FileSystemCache
     {
         $cache = new FileSystemCache(__DIR__ . '/../../var/cache');
         $cache->clear();
