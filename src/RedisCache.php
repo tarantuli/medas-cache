@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-
 use Medas\ServiceManager\Values\Serializer;
 
 class RedisCache extends BaseCache
 {
-    public function __construct(private \Redis $redis, private string $namespace, ?Serializer $serializer = null)
+    public function __construct(
+        private readonly \Redis $redis,
+        private readonly string $namespace,
+        Serializer|null         $serializer = null,
+    )
     {
         $this->redis->connect('127.0.0.1');
         $this->redis->setOption(\Redis::OPT_PREFIX, $this->namespace . ':');

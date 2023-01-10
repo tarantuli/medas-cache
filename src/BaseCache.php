@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Cache\Exceptions\CacheTypeNotSupportedException;
+use Medas\Cache\Exceptions\CacheTypeNotSupported;
 use Medas\Cache\Interfaces\HasKeyRegister;
 use Medas\ServiceManager\Cache\Interfaces\{Cache, Clearable};
 use Medas\ServiceManager\Values\Interfaces\Serializer;
@@ -26,7 +26,7 @@ abstract class BaseCache implements Cache, Clearable
     )
     {
         if (!$this->isSupported()) {
-            throw new CacheTypeNotSupportedException(static::class);
+            throw new CacheTypeNotSupported(static::class);
         }
 
         if ($this->serializer === null) {

@@ -12,23 +12,13 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
 {
     private DirectoryManager $directoryManager;
 
-    public function __construct(private string $namespace, ?Serializer $serializer = null)
+    public function __construct(
+        private readonly string $namespace,
+        Serializer|null         $serializer = null,
+    )
     {
         $this->directoryManager = new DirectoryManager();
         parent::__construct($serializer);
-    }
-
-    public function exists(string $key): bool
-    {
-        return parent::exists($key) || file_exists($this->getPath($key));
-    }
-
-    private function getPath(string $key): string
-    {
-        return $this->namespace
-            . DIRECTORY_SEPARATOR . substr($key, 0, 1)
-            . DIRECTORY_SEPARATOR . substr($key, 1, 1)
-            . DIRECTORY_SEPARATOR . $key;
     }
 
     public function fetch(string $key): mixed
@@ -43,6 +33,19 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
         parent::store($key, $value);
 
         return $value;
+    }
+
+    public function exists(string $key): bool
+    {
+        return parent::exists($key) || file_exists($this->getPath($key));
+    }
+
+    private function getPath(string $key): string
+    {
+        return $this->namespace
+            . DIRECTORY_SEPARATOR . substr($key, 0, 1)
+            . DIRECTORY_SEPARATOR . substr($key, 1, 1)
+            . DIRECTORY_SEPARATOR . $key;
     }
 
     public function store(string $key, mixed $value): void

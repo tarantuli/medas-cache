@@ -6,7 +6,7 @@ namespace Medas\Cache\Exceptions;
 
 use Medas\Core\Exceptions\BaseException;
 
-class CacheTypeNotSupportedException extends BaseException
+class CacheTypeNotSupported extends BaseException
 {
     public function __construct(string $type)
     {
