@@ -13,10 +13,11 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
     private DirectoryManager $directoryManager;
 
     public function __construct(
-        private readonly string $namespace,
-        Serializer|null         $serializer = null,
+        private string  $baseDirectory,
+        Serializer|null $serializer = null,
     )
     {
+        $this->baseDirectory = getcwd() . DIRECTORY_SEPARATOR . $this->baseDirectory;
         $this->directoryManager = new DirectoryManager();
         parent::__construct($serializer);
     }
@@ -42,7 +43,7 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
 
     private function getPath(string $key): string
     {
-        return $this->namespace
+        return $this->baseDirectory
             . DIRECTORY_SEPARATOR . substr($key, 0, 1)
             . DIRECTORY_SEPARATOR . substr($key, 1, 1)
             . DIRECTORY_SEPARATOR . $key;
@@ -61,7 +62,7 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
 
     public function registerKey(array|string $key, string $normalizedKey): void
     {
-        $keyFile = $this->namespace . DIRECTORY_SEPARATOR . 'key_index';
+        $keyFile = $this->baseDirectory . DIRECTORY_SEPARATOR . 'key_index';
         $keys = file_exists($keyFile) ? json_decode(file_get_contents($keyFile), true) : [];
 
         if (array_key_exists($normalizedKey, $keys)) {
@@ -85,16 +86,16 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
 
     public function isSupported(): bool
     {
-        if (!file_exists($this->namespace)) {
-            $this->directoryManager->create($this->namespace);
+        if (!file_exists($this->baseDirectory)) {
+            $this->directoryManager->create($this->baseDirectory);
         }
 
-        return is_dir($this->namespace) && is_writeable($this->namespace);
+        return is_dir($this->baseDirectory) && is_writeable($this->baseDirectory);
     }
 
     public function clear(): void
     {
-        $files = $this->directoryManager->recursiveFind($this->namespace, '//');
+        $files = $this->directoryManager->recursiveFind($this->baseDirectory, '//');
 
         foreach ($files as $file) {
             unlink($file);
