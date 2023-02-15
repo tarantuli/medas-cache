@@ -5,20 +5,25 @@ declare(strict_types=1);
 namespace Medas\Cache;
 
 use Medas\Cache\Interfaces\HasKeyRegister;
-use Medas\FileSystem\DirectoryManager;
+use Medas\FileSystem\{DirectoryManager, PathNormalizer};
 use Medas\ServiceManager\Values\Interfaces\Serializer;
 
 class FileSystemCache extends MemoryCache implements HasKeyRegister
 {
     private DirectoryManager $directoryManager;
+    private PathNormalizer $pathNormalizer;
 
     public function __construct(
         private string  $baseDirectory,
         Serializer|null $serializer = null,
     )
     {
-        $this->baseDirectory = getcwd() . DIRECTORY_SEPARATOR . $this->baseDirectory;
+        // Create new instances instead of injecting services
+        // because caches are used by the service manager quite early on
         $this->directoryManager = new DirectoryManager();
+        $this->pathNormalizer = new PathNormalizer();
+        $this->baseDirectory = $this->pathNormalizer->normalize($this->baseDirectory);
+
         parent::__construct($serializer);
     }
 
