@@ -67,15 +67,27 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
 
     public function registerKey(array|string $key, string $normalizedKey): void
     {
-        $keyFile = $this->baseDirectory . DIRECTORY_SEPARATOR . 'key_index';
-        $keys = file_exists($keyFile) ? json_decode(file_get_contents($keyFile), true) : [];
+        $keys = $this->getKeys();
 
         if (array_key_exists($normalizedKey, $keys)) {
             return;
         }
 
         $keys[$normalizedKey] = $key;
-        file_put_contents($keyFile, json_encode($keys, JSON_PRETTY_PRINT));
+        file_put_contents($this->keyFilePath(), json_encode($keys, JSON_PRETTY_PRINT));
+    }
+
+    private function getKeys(): array
+    {
+        $keyFile = $this->keyFilePath();
+        $keys = file_exists($keyFile) ? json_decode(file_get_contents($keyFile), true) : [];
+
+        if ($keys === null) {
+            // The key file is corrupt
+            unlink($keyFile);
+            $keys = [];
+        }
+        return $keys;
     }
 
     public function delete(string $key): void
@@ -107,5 +119,10 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
         }
 
         parent::clear();
+    }
+
+    private function keyFilePath(): string
+    {
+        return $this->baseDirectory . DIRECTORY_SEPARATOR . 'key_index';
     }
 }
