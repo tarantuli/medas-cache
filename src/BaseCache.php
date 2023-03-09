@@ -7,7 +7,7 @@ namespace Medas\Cache;
 use Medas\Cache\Exceptions\CacheTypeNotSupported;
 use Medas\Cache\Interfaces\HasKeyRegister;
 use Medas\ServiceManager\Cache\Interfaces\{Cache, Clearable};
-use Medas\ServiceManager\Values\Interfaces\Serializer;
+use Medas\ServiceManager\Interfaces\Serializer;
 
 abstract class BaseCache implements Cache, Clearable
 {
@@ -30,7 +30,7 @@ abstract class BaseCache implements Cache, Clearable
         }
 
         if ($this->serializer === null) {
-            $this->serializer = new \Medas\ServiceManager\Values\Serializer();
+            $this->serializer = new PhpSerializer();
         }
     }
 

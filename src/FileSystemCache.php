@@ -6,7 +6,7 @@ namespace Medas\Cache;
 
 use Medas\Cache\Interfaces\HasKeyRegister;
 use Medas\FileSystem\{DirectoryManager, PathNormalizer};
-use Medas\ServiceManager\Values\Interfaces\Serializer;
+use Medas\ServiceManager\Interfaces\Serializer;
 
 class FileSystemCache extends MemoryCache implements HasKeyRegister
 {
