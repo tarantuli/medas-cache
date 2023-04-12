@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\ServiceManager\Interfaces\Serializer;
-use Medas\ServiceManager\Interfaces\Type;
+use Medas\Core\Interfaces\{Serializer, Type};
 
 class PhpSerializer implements Serializer
 {

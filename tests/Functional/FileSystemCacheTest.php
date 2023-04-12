@@ -6,7 +6,7 @@ namespace Medas\CacheTest\Functional;
 
 use Medas\Cache\FileSystemCache;
 
-class FileSystemCacheTest extends BaseCacheTest
+class FileSystemCacheTest extends BaseCacheTestClass
 {
     protected function getCache(): FileSystemCache
     {

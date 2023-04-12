@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\ServiceManager\Interfaces\Serializer;
+use Medas\Core\Interfaces\Serializer;
 
 class RedisCache extends BaseCache
 {

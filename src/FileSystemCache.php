@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Medas\Cache;
 
 use Medas\Cache\Interfaces\HasKeyRegister;
+use Medas\Core\Interfaces\Serializer;
 use Medas\FileSystem\{DirectoryManager, PathNormalizer};
-use Medas\ServiceManager\Interfaces\Serializer;
 
 class FileSystemCache extends MemoryCache implements HasKeyRegister
 {
@@ -90,6 +90,11 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
         return $keys;
     }
 
+    private function keyFilePath(): string
+    {
+        return $this->baseDirectory . DIRECTORY_SEPARATOR . 'key_index';
+    }
+
     public function delete(string $key): void
     {
         $path = $this->getPath($key);
@@ -119,10 +124,5 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
         }
 
         parent::clear();
-    }
-
-    private function keyFilePath(): string
-    {
-        return $this->baseDirectory . DIRECTORY_SEPARATOR . 'key_index';
     }
 }

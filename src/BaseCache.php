@@ -6,21 +6,10 @@ namespace Medas\Cache;
 
 use Medas\Cache\Exceptions\CacheTypeNotSupported;
 use Medas\Cache\Interfaces\HasKeyRegister;
-use Medas\ServiceManager\Cache\Interfaces\{Cache, Clearable};
-use Medas\ServiceManager\Interfaces\Serializer;
+use Medas\Core\Interfaces\{Cache, Clearable, Serializer};
 
 abstract class BaseCache implements Cache, Clearable
 {
-    abstract public function exists(string $key): bool;
-
-    abstract public function fetch(string $key): mixed;
-
-    abstract public function store(string $key, mixed $value): void;
-
-    abstract public function delete(string $key): void;
-
-    abstract public function isSupported(): bool;
-
     public function __construct(
         protected Serializer|null $serializer = null,
     )
@@ -33,6 +22,27 @@ abstract class BaseCache implements Cache, Clearable
             $this->serializer = new PhpSerializer();
         }
     }
+
+    abstract public function isSupported(): bool;
+
+    public function set(string|array $key, mixed $value): void
+    {
+        $this->remove($key);
+        $this->get($key, fn() => $value);
+    }
+
+    public function remove(array|string $key): void
+    {
+        $key = $this->normalizeKey($key);
+        $this->delete($key);
+    }
+
+    private function normalizeKey(array|string $key): string
+    {
+        return sha1(is_array($key) ? implode("\0", $key) : $key);
+    }
+
+    abstract public function delete(string $key): void;
 
     public function get(array|string $key, callable $getter): mixed
     {
@@ -53,20 +63,9 @@ abstract class BaseCache implements Cache, Clearable
         return $value;
     }
 
-    public function set(string|array $key, mixed $value): void
-    {
-        $this->remove($key);
-        $this->get($key, fn() => $value);
-    }
+    abstract public function exists(string $key): bool;
 
-    private function normalizeKey(array|string $key): string
-    {
-        return sha1(is_array($key) ? implode("\0", $key) : $key);
-    }
+    abstract public function fetch(string $key): mixed;
 
-    public function remove(array|string $key): void
-    {
-        $key = $this->normalizeKey($key);
-        $this->delete($key);
-    }
+    abstract public function store(string $key, mixed $value): void;
 }

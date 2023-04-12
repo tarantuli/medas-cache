@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Medas\CacheTest\Functional;
 
-use Medas\ServiceManager\Cache\Interfaces\Cache;
+use Medas\Core\Interfaces\Cache;
 use PHPUnit\Framework\TestCase;
 
-abstract class BaseCacheTest extends TestCase
+abstract class BaseCacheTestClass extends TestCase
 {
     public function testAddItem(): void
     {

@@ -6,7 +6,7 @@ namespace Medas\CacheTest\Functional;
 
 use Medas\Cache\RedisCache;
 
-class RedisCacheTest extends BaseCacheTest
+class RedisCacheTest extends BaseCacheTestClass
 {
     protected function getCache(): RedisCache
     {
