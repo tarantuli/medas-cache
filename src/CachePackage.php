@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
+use Medas\Core\AsSingleton;
 use Medas\FileSystem\FileSystemPackage;
-use Medas\ServiceManager\{AsSingleton, BasePackage};
+use Medas\ServiceManager\BasePackage;
 
 class CachePackage extends BasePackage
 {
