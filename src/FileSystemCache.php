@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Medas\Cache;
 
 use Medas\Cache\Interfaces\HasKeyRegister;
+use Medas\Core\Interfaces\FileSystemCache as FileSystemCacheInterface;
 use Medas\Core\Interfaces\Serializer;
 use Medas\FileSystem\{DirectoryManager, PathNormalizer};
 
-class FileSystemCache extends MemoryCache implements HasKeyRegister
+class FileSystemCache extends MemoryCache implements HasKeyRegister, FileSystemCacheInterface
 {
     private DirectoryManager $directoryManager;
     private PathNormalizer $pathNormalizer;
@@ -124,5 +125,10 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister
         }
 
         parent::clear();
+    }
+
+    public function baseDirectory(): string
+    {
+        return $this->baseDirectory;
     }
 }
