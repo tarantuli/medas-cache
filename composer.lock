@@ -55,12 +55,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:tarantuli/medas-core.git",
-                "reference": "4aa07d971e67eb4a90dad9eb5900f56485892846"
+                "reference": "ff8995eea265ed044be9e7e269d64ffd11526453"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-core/zipball/4aa07d971e67eb4a90dad9eb5900f56485892846",
-                "reference": "4aa07d971e67eb4a90dad9eb5900f56485892846",
+                "url": "https://api.github.com/repos/tarantuli/medas-core/zipball/ff8995eea265ed044be9e7e269d64ffd11526453",
+                "reference": "ff8995eea265ed044be9e7e269d64ffd11526453",
                 "shasum": ""
             },
             "require": {
@@ -93,7 +93,7 @@
                 "source": "https://github.com/tarantuli/medas-core/tree/dev",
                 "issues": "https://github.com/tarantuli/medas-core/issues"
             },
-            "time": "2023-06-06T07:53:16+00:00"
+            "time": "2023-06-07T14:38:09+00:00"
         },
         {
             "name": "morphp/medas-file-system",
@@ -179,12 +179,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:tarantuli/medas-service-manager.git",
-                "reference": "fc022eb105d478110098da64955c7e32fe46d74f"
+                "reference": "9419cef3d508ae5bb695797d6fd62a1c463cd074"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-service-manager/zipball/fc022eb105d478110098da64955c7e32fe46d74f",
-                "reference": "fc022eb105d478110098da64955c7e32fe46d74f",
+                "url": "https://api.github.com/repos/tarantuli/medas-service-manager/zipball/9419cef3d508ae5bb695797d6fd62a1c463cd074",
+                "reference": "9419cef3d508ae5bb695797d6fd62a1c463cd074",
                 "shasum": ""
             },
             "require": {
@@ -218,7 +218,7 @@
                 "source": "https://github.com/tarantuli/medas-service-manager/tree/dev",
                 "issues": "https://github.com/tarantuli/medas-service-manager/issues"
             },
-            "time": "2023-06-02T09:31:29+00:00"
+            "time": "2023-06-14T07:31:19+00:00"
         }
     ],
     "packages-dev": [
@@ -838,16 +838,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "9.6.8",
+            "version": "9.6.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "17d621b3aff84d0c8b62539e269e87d8d5baa76e"
+                "reference": "a9aceaf20a682aeacf28d582654a1670d8826778"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/17d621b3aff84d0c8b62539e269e87d8d5baa76e",
-                "reference": "17d621b3aff84d0c8b62539e269e87d8d5baa76e",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a9aceaf20a682aeacf28d582654a1670d8826778",
+                "reference": "a9aceaf20a682aeacf28d582654a1670d8826778",
                 "shasum": ""
             },
             "require": {
@@ -921,7 +921,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.6.8"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/9.6.9"
             },
             "funding": [
                 {
@@ -937,7 +937,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-05-11T05:14:45+00:00"
+            "time": "2023-06-11T06:13:56+00:00"
         },
         {
             "name": "sebastian/cli-parser",
