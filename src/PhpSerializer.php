@@ -10,7 +10,12 @@ class PhpSerializer implements Serializer
 {
     public function serialize(mixed $value): string
     {
-        return serialize($value);
+        try {
+            return serialize($value);
+        }
+        catch (\Exception $e) {
+            return '[' . $e->getMessage() . ']';
+        }
     }
 
     public function unserialize(mixed $value, Type $type = null): mixed
