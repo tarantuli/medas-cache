@@ -6,7 +6,8 @@ namespace Medas\Cache;
 
 use Medas\Cache\Exceptions\CacheTypeNotSupported;
 use Medas\Cache\Interfaces\HasKeyRegister;
-use Medas\Core\Interfaces\{Cache, Clearable, Serializer};
+use Medas\Core\Interfaces\{Cache,Clearable,Serializer};
+use Medas\Core\Serializers\PhpSerializer;
 
 abstract class BaseCache implements Cache, Clearable
 {
