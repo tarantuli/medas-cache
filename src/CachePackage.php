@@ -14,9 +14,9 @@ class CachePackage extends BasePackage
 
     public function dependencies(): array
     {
-        return $this->dependenciesByClass([
-            FileSystemPackage::class,
-        ]);
+        return [
+            FileSystemPackage::instance(),
+        ];
     }
 
     public function sourceDirectory(): string

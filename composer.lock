@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:tarantuli/medas-core.git",
-                "reference": "f34d39a5f4feb51f992b5a9b71db7500e8e07e28"
+                "reference": "7ef384b512fe8bebf94c4038fba2af403a9429cc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-core/zipball/f34d39a5f4feb51f992b5a9b71db7500e8e07e28",
-                "reference": "f34d39a5f4feb51f992b5a9b71db7500e8e07e28",
+                "url": "https://api.github.com/repos/tarantuli/medas-core/zipball/7ef384b512fe8bebf94c4038fba2af403a9429cc",
+                "reference": "7ef384b512fe8bebf94c4038fba2af403a9429cc",
                 "shasum": ""
             },
             "require": {
@@ -50,7 +50,7 @@
                 "source": "https://github.com/tarantuli/medas-core/tree/dev",
                 "issues": "https://github.com/tarantuli/medas-core/issues"
             },
-            "time": "2023-08-03T07:54:38+00:00"
+            "time": "2023-08-16T13:02:05+00:00"
         },
         {
             "name": "morphp/medas-file-system",
@@ -217,12 +217,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:tarantuli/medas-object-instantiator.git",
-                "reference": "93c6953307ed9465a020316500b2e45f37c0ec9a"
+                "reference": "215f3350dd638fb09e951202e5cc429c0686e625"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-object-instantiator/zipball/93c6953307ed9465a020316500b2e45f37c0ec9a",
-                "reference": "93c6953307ed9465a020316500b2e45f37c0ec9a",
+                "url": "https://api.github.com/repos/tarantuli/medas-object-instantiator/zipball/215f3350dd638fb09e951202e5cc429c0686e625",
+                "reference": "215f3350dd638fb09e951202e5cc429c0686e625",
                 "shasum": ""
             },
             "require": {
@@ -250,7 +250,7 @@
                 "source": "https://github.com/tarantuli/medas-object-instantiator/tree/dev",
                 "issues": "https://github.com/tarantuli/medas-object-instantiator/issues"
             },
-            "time": "2023-07-13T07:44:28+00:00"
+            "time": "2023-08-16T08:38:31+00:00"
         },
         {
             "name": "morphp/medas-service-manager",
@@ -258,12 +258,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:tarantuli/medas-service-manager.git",
-                "reference": "4e8e96238a36762029049307801536d084faefce"
+                "reference": "7ac9b3444d42a6c5e861a95529e55efdd6067de9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-service-manager/zipball/4e8e96238a36762029049307801536d084faefce",
-                "reference": "4e8e96238a36762029049307801536d084faefce",
+                "url": "https://api.github.com/repos/tarantuli/medas-service-manager/zipball/7ac9b3444d42a6c5e861a95529e55efdd6067de9",
+                "reference": "7ac9b3444d42a6c5e861a95529e55efdd6067de9",
                 "shasum": ""
             },
             "require": {
@@ -297,7 +297,7 @@
                 "source": "https://github.com/tarantuli/medas-service-manager/tree/dev",
                 "issues": "https://github.com/tarantuli/medas-service-manager/issues"
             },
-            "time": "2023-08-03T07:56:11+00:00"
+            "time": "2023-08-16T08:32:41+00:00"
         },
         {
             "name": "myclabs/deep-copy",
@@ -360,16 +360,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v4.16.0",
+            "version": "v4.17.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "19526a33fb561ef417e822e85f08a00db4059c17"
+                "reference": "a6303e50c90c355c7eeee2c4a8b27fe8dc8fef1d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/19526a33fb561ef417e822e85f08a00db4059c17",
-                "reference": "19526a33fb561ef417e822e85f08a00db4059c17",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/a6303e50c90c355c7eeee2c4a8b27fe8dc8fef1d",
+                "reference": "a6303e50c90c355c7eeee2c4a8b27fe8dc8fef1d",
                 "shasum": ""
             },
             "require": {
@@ -410,9 +410,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v4.16.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v4.17.1"
             },
-            "time": "2023-06-25T14:52:30+00:00"
+            "time": "2023-08-13T19:53:39+00:00"
         },
         {
             "name": "phar-io/manifest",
