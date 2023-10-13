@@ -52,7 +52,7 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister, FileSystemC
         return $this->baseDirectory
             . DIRECTORY_SEPARATOR . substr($key, 0, 1)
             . DIRECTORY_SEPARATOR . substr($key, 1, 1)
-            . DIRECTORY_SEPARATOR . $key;
+            . DIRECTORY_SEPARATOR . substr($key, 2);
     }
 
     public function store(string $key, mixed $value): void
