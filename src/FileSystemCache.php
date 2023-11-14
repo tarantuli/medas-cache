@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Cache\Interfaces\HasKeyRegister;
-use Medas\Core\Interfaces\FileSystemCache as FileSystemCacheInterface;
-use Medas\Core\Interfaces\Serializer;
+use Medas\Core\Interfaces\{FileSystemCache as FileSystemCacheInterface, Serializer};
 use Medas\FileSystem\{DirectoryManager, PathNormalizer};
 
-class FileSystemCache extends MemoryCache implements HasKeyRegister, FileSystemCacheInterface
+class FileSystemCache extends MemoryCache implements Interfaces\HasKeyRegister, FileSystemCacheInterface
 {
     private DirectoryManager $directoryManager;
     private PathNormalizer $pathNormalizer;
@@ -50,9 +48,12 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister, FileSystemC
     private function getPath(string $key): string
     {
         return $this->baseDirectory
-            . DIRECTORY_SEPARATOR . substr($key, 0, 1)
-            . DIRECTORY_SEPARATOR . substr($key, 1, 1)
-            . DIRECTORY_SEPARATOR . substr($key, 2);
+            . DIRECTORY_SEPARATOR
+            . substr($key, 0, 1)
+            . DIRECTORY_SEPARATOR
+            . substr($key, 1, 1)
+            . DIRECTORY_SEPARATOR
+            . substr($key, 2);
     }
 
     public function store(string $key, mixed $value): void
@@ -60,9 +61,10 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister, FileSystemC
         parent::store($key, $value);
 
         $serializedValue = $this->serializer->serialize($value);
-
         $path = $this->getPath($key);
+
         $this->directoryManager->create(pathinfo($path, PATHINFO_DIRNAME));
+
         file_put_contents($path, $serializedValue);
     }
 
@@ -75,6 +77,7 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister, FileSystemC
         }
 
         $keys[$normalizedKey] = $key;
+
         file_put_contents($this->keyFilePath(), json_encode($keys, JSON_PRETTY_PRINT));
     }
 
@@ -86,8 +89,10 @@ class FileSystemCache extends MemoryCache implements HasKeyRegister, FileSystemC
         if ($keys === null) {
             // The key file is corrupt
             unlink($keyFile);
+
             $keys = [];
         }
+
         return $keys;
     }
 

@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Cache\Exceptions\CacheTypeNotSupported;
-use Medas\Cache\Interfaces\HasKeyRegister;
-use Medas\Core\Interfaces\{Cache,Clearable,Serializer};
-use Medas\Core\Serializers\PhpSerializer;
+use Medas\Core\{Interfaces\Cache, Interfaces\Clearable, Interfaces\Serializer, Serializers\PhpSerializer};
 
 abstract class BaseCache implements Cache, Clearable
 {
@@ -16,7 +13,7 @@ abstract class BaseCache implements Cache, Clearable
     )
     {
         if (!$this->isSupported()) {
-            throw new CacheTypeNotSupported(static::class);
+            throw new Exceptions\CacheTypeNotSupported(static::class);
         }
 
         if ($this->serializer === null) {
@@ -35,6 +32,7 @@ abstract class BaseCache implements Cache, Clearable
     public function remove(array|string $key): void
     {
         $key = $this->normalizeKey($key);
+
         $this->delete($key);
     }
 
@@ -54,9 +52,10 @@ abstract class BaseCache implements Cache, Clearable
         }
         else {
             $value = $getter();
+
             $this->store($normalizedKey, $value);
 
-            if ($this instanceof HasKeyRegister) {
+            if ($this instanceof Interfaces\HasKeyRegister) {
                 $this->registerKey($key, $normalizedKey);
             }
         }
