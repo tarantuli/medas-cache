@@ -23,7 +23,20 @@ class FileSystemCache extends MemoryCache implements Interfaces\HasKeyRegister, 
         $this->pathNormalizer = new PathNormalizer();
         $this->baseDirectory = $this->pathNormalizer->normalize($this->baseDirectory);
 
+        $this->registerDirToClear();
+
         parent::__construct($serializer);
+    }
+
+    private function registerDirToClear(): void
+    {
+        $path = 'var/dirs-to-clear';
+        $fileName = $path . DIRECTORY_SEPARATOR . sha1($this->baseDirectory);
+
+        if (!file_exists($fileName)) {
+            $this->directoryManager->create($path);
+            file_put_contents($fileName, $this->baseDirectory . "\n");
+        }
     }
 
     public function fetch(string $key): mixed
