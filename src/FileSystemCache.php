@@ -35,6 +35,7 @@ class FileSystemCache extends MemoryCache implements Interfaces\HasKeyRegister, 
 
         if (!file_exists($fileName)) {
             $this->directoryManager->create($path);
+
             file_put_contents($fileName, $this->baseDirectory . "\n");
         }
     }
