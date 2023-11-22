@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\{Interfaces\Cache, Interfaces\Clearable, Interfaces\Serializer, Serializers\PhpSerializer};
+use Medas\Core\{
+    Interfaces\Cache,
+    Interfaces\Clearable,
+    Interfaces\Serializer,
+    Serializers\PhpSerializer
+};
 
 abstract class BaseCache implements Cache, Clearable
 {
