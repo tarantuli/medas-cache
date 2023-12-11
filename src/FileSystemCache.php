@@ -7,7 +7,7 @@ namespace Medas\Cache;
 use Medas\Core\Interfaces\{FileSystemCache as FileSystemCacheInterface, Serializer};
 use Medas\FileSystem\{DirectoryManager, PathNormalizer};
 
-class FileSystemCache extends MemoryCache implements Interfaces\HasKeyRegister, FileSystemCacheInterface
+class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
 {
     private DirectoryManager $directoryManager;
     private PathNormalizer $pathNormalizer;
@@ -80,39 +80,6 @@ class FileSystemCache extends MemoryCache implements Interfaces\HasKeyRegister, 
         $this->directoryManager->create(pathinfo($path, PATHINFO_DIRNAME));
 
         file_put_contents($path, $serializedValue);
-    }
-
-    public function registerKey(array|string $key, string $normalizedKey): void
-    {
-        $keys = $this->getKeys();
-
-        if (array_key_exists($normalizedKey, $keys)) {
-            return;
-        }
-
-        $keys[$normalizedKey] = $key;
-
-        file_put_contents($this->keyFilePath(), json_encode($keys, JSON_PRETTY_PRINT));
-    }
-
-    private function getKeys(): array
-    {
-        $keyFile = $this->keyFilePath();
-        $keys = file_exists($keyFile) ? json_decode(file_get_contents($keyFile), true) : [];
-
-        if ($keys === null) {
-            // The key file is corrupt
-            unlink($keyFile);
-
-            $keys = [];
-        }
-
-        return $keys;
-    }
-
-    private function keyFilePath(): string
-    {
-        return $this->baseDirectory . DIRECTORY_SEPARATOR . 'key_index';
     }
 
     public function delete(string $key): void
