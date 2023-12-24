@@ -13,6 +13,16 @@ use Medas\Core\{
 
 abstract class BaseCache implements Cache, Clearable
 {
+    abstract public function isSupported(): bool;
+
+    abstract public function delete(string $key): void;
+
+    abstract public function exists(string $key): bool;
+
+    abstract public function fetch(string $key): mixed;
+
+    abstract public function store(string $key, mixed $value): void;
+
     public function __construct(
         protected Serializer|null $serializer = null,
     )
@@ -26,8 +36,6 @@ abstract class BaseCache implements Cache, Clearable
         }
     }
 
-    abstract public function isSupported(): bool;
-
     public function set(string|array $key, mixed $value): void
     {
         $this->remove($key);
@@ -40,13 +48,6 @@ abstract class BaseCache implements Cache, Clearable
 
         $this->delete($key);
     }
-
-    private function normalizeKey(array|string $key): string
-    {
-        return sha1(is_array($key) ? implode("\0", $key) : $key);
-    }
-
-    abstract public function delete(string $key): void;
 
     public function get(array|string $key, callable $getter): mixed
     {
@@ -68,9 +69,8 @@ abstract class BaseCache implements Cache, Clearable
         return $value;
     }
 
-    abstract public function exists(string $key): bool;
-
-    abstract public function fetch(string $key): mixed;
-
-    abstract public function store(string $key, mixed $value): void;
+    private function normalizeKey(array|string $key): string
+    {
+        return sha1(is_array($key) ? implode("\0", $key) : $key);
+    }
 }

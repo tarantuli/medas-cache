@@ -59,17 +59,6 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
         return parent::exists($key) || file_exists($this->getPath($key));
     }
 
-    private function getPath(string $key): string
-    {
-        return $this->baseDirectory
-            . DIRECTORY_SEPARATOR
-            . substr($key, 0, 1)
-            . DIRECTORY_SEPARATOR
-            . substr($key, 1, 1)
-            . DIRECTORY_SEPARATOR
-            . substr($key, 2);
-    }
-
     public function store(string $key, mixed $value): void
     {
         parent::store($key, $value);
@@ -91,6 +80,17 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
         }
 
         parent::delete($key);
+    }
+
+    private function getPath(string $key): string
+    {
+        return $this->baseDirectory
+            . DIRECTORY_SEPARATOR
+            . substr($key, 0, 1)
+            . DIRECTORY_SEPARATOR
+            . substr($key, 1, 1)
+            . DIRECTORY_SEPARATOR
+            . substr($key, 2);
     }
 
     public function isSupported(): bool
