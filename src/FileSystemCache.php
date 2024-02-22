@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Medas\Cache;
 
 use Medas\Core\Interfaces\{FileSystemCache as FileSystemCacheInterface, Serializer};
-use Medas\FileSystem\{DirectoryManager, PathNormalizer};
+use Medas\FileSystem\{DirectoryCreator, FileFinder, PathNormalizer};
 
 class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
 {
-    private DirectoryManager $directoryManager;
+    private DirectoryCreator $directoryManager;
+    private FileFinder $fileFinder;
     private PathNormalizer $pathNormalizer;
 
     public function __construct(
@@ -19,7 +20,8 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
     {
         // Create new instances instead of injecting services
         // because caches are used by the service manager quite early on
-        $this->directoryManager = new DirectoryManager();
+        $this->directoryManager = new DirectoryCreator();
+        $this->fileFinder = new FileFinder();
         $this->pathNormalizer = new PathNormalizer();
         $this->baseDirectory = $this->pathNormalizer->normalize($this->baseDirectory);
 
@@ -104,7 +106,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
 
     public function clear(): void
     {
-        $files = $this->directoryManager->recursiveFind($this->baseDirectory, '//');
+        $files = $this->fileFinder->find($this->baseDirectory, '//');
 
         foreach ($files as $file) {
             unlink($file);
