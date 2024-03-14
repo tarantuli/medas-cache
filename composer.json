@@ -1,6 +1,7 @@
 {
     "name": "morphp/medas-cache",
-    "description": "Medas cache",
+    "description": "Contains a base cache and a file system cache implementation",
+    "keywords": ["storage", "backend"],
     "authors": [
         {
             "name": "Patrick Morpey",
