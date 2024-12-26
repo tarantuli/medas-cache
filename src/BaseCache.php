@@ -71,6 +71,6 @@ abstract class BaseCache implements Cache, Clearable
 
     private function normalizeKey(array|string $key): string
     {
-        return sha1(is_array($key) ? implode("\0", $key) : $key);
+        return is_array($key) ? implode("\0", $key) : $key;
     }
 }
