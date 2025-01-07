@@ -86,13 +86,15 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
 
     private function getPath(string $key): string
     {
+        $hashedKey = sha1($key);
+
         return $this->baseDirectory
             . DIRECTORY_SEPARATOR
-            . substr($key, 0, 1)
+            . substr($hashedKey, 0, 1)
             . DIRECTORY_SEPARATOR
-            . substr($key, 1, 1)
+            . substr($hashedKey, 1, 1)
             . DIRECTORY_SEPARATOR
-            . substr($key, 2);
+            . substr($hashedKey, 2);
     }
 
     public function isSupported(): bool
