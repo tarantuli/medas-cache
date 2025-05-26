@@ -38,8 +38,13 @@ abstract class BaseCache implements Cache, Clearable
 
     public function set(string|array $key, mixed $value): void
     {
-        $this->remove($key);
-        $this->get($key, fn() => $value);
+        $normalizedKey = $this->normalizeKey($key);
+
+        $this->store($normalizedKey, $value);
+
+        if ($this instanceof Interfaces\HasKeyRegister) {
+            $this->registerKey($key, $normalizedKey);
+        }
     }
 
     public function remove(array|string $key): void
