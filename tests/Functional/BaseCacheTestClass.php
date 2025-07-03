@@ -9,26 +9,27 @@ use PHPUnit\Framework\TestCase;
 
 abstract class BaseCacheTestClass extends TestCase
 {
+    abstract protected function getCache(): Cache;
+
     public function testAddItem(): void
     {
         $cache = $this->getCache();
-
         $value = $cache->get('testAddItem', fn() => 'test-value');
+
         self::assertEquals('test-value', $value);
 
         $value = $cache->get('testAddItem', fn() => 'new-test-value');
+
         self::assertEquals('test-value', $value);
     }
-
-    abstract protected function getCache(): Cache;
 
     public function testSerializeClosures(): void
     {
         $cache = $this->getCache();
-
         $closure = fn() => 'a value';
 
         $this->expectException(\Exception::class);
+
         $cache->get('testSerializeClosure', fn() => $closure);
     }
 }
