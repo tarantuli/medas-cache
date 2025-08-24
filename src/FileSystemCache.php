@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Medas\Cache;
 
 use Medas\Core\Interfaces\{FileSystemCache as FileSystemCacheInterface, Serializer};
-use Medas\FileSystem\{DirectoryCreator, FileFinder, PathNormalizer};
+use Medas\FileSystem\{DirectoryCreator, FileFinder, LockingFileWriter, PathNormalizer};
 
 class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
 {
@@ -48,7 +48,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
             return parent::fetch($key);
         }
 
-        $serializedValue = file_get_contents($this->getPath($key));
+        $serializedValue = service(LockingFileWriter::class)->read($this->getPath($key));
         $value = $this->serializer->unserialize($serializedValue);
 
         parent::store($key, $value);
@@ -70,7 +70,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
 
         $this->directoryManager->create(pathinfo($path, PATHINFO_DIRNAME));
 
-        file_put_contents($path, $serializedValue);
+        service(LockingFileWriter::class)->write($path, $serializedValue);
     }
 
     public function delete(string $key): void
