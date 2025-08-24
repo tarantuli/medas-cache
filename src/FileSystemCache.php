@@ -12,6 +12,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
     private DirectoryCreator $directoryManager;
     private FileFinder $fileFinder;
     private PathNormalizer $pathNormalizer;
+    private LockingFileWriter $fileWriter;
 
     public function __construct(
         private string  $baseDirectory,
@@ -23,6 +24,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
         $this->directoryManager = new DirectoryCreator();
         $this->fileFinder = new FileFinder();
         $this->pathNormalizer = new PathNormalizer();
+        $this->fileWriter = new LockingFileWriter();
         $this->baseDirectory = $this->pathNormalizer->normalize($this->baseDirectory);
 
         $this->registerDirToClear();
@@ -48,7 +50,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
             return parent::fetch($key);
         }
 
-        $serializedValue = service(LockingFileWriter::class)->read($this->getPath($key));
+        $serializedValue = $this->fileWriter->read($this->getPath($key));
         $value = $this->serializer->unserialize($serializedValue);
 
         parent::store($key, $value);
@@ -69,8 +71,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
         $path = $this->getPath($key);
 
         $this->directoryManager->create(pathinfo($path, PATHINFO_DIRNAME));
-
-        service(LockingFileWriter::class)->write($path, $serializedValue);
+        $this->fileWriter->write($path, $serializedValue);
     }
 
     public function delete(string $key): void
