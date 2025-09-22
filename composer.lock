@@ -63,12 +63,12 @@
             "source": {
                 "type": "git",
                 "url": "git@github.com:tarantuli/medas-file-system.git",
-                "reference": "349a27c014c7658aca7e8f1ac536f51f1efa5584"
+                "reference": "fb04f925736293467c6dd30e925b4c8a040521e0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-file-system/zipball/349a27c014c7658aca7e8f1ac536f51f1efa5584",
-                "reference": "349a27c014c7658aca7e8f1ac536f51f1efa5584",
+                "url": "https://api.github.com/repos/tarantuli/medas-file-system/zipball/fb04f925736293467c6dd30e925b4c8a040521e0",
+                "reference": "fb04f925736293467c6dd30e925b4c8a040521e0",
                 "shasum": ""
             },
             "require": {
@@ -100,7 +100,7 @@
                 "source": "https://github.com/tarantuli/medas-file-system/tree/dev",
                 "issues": "https://github.com/tarantuli/medas-file-system/issues"
             },
-            "time": "2025-09-22T10:38:46+00:00"
+            "time": "2025-09-22T10:43:05+00:00"
         },
         {
             "name": "psr/event-dispatcher",
