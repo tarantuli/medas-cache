@@ -24,7 +24,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
         $this->directoryManager = new DirectoryCreator();
         $this->fileFinder = new FileFinder();
         $this->pathNormalizer = new PathNormalizer();
-        $this->fileWriter = new LockingFileWriter();
+        $this->fileWriter = new LockingFileWriter($this->baseDirectory . DIRECTORY_SEPARATOR . 'locks');
         $this->baseDirectory = $this->pathNormalizer->normalize($this->baseDirectory);
 
         $this->registerDirToClear();
