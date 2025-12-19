@@ -10,8 +10,8 @@ use Medas\Core\{Attributes\Service, Interfaces\Serializer};
 class ApcuCache extends BaseCache
 {
     public function __construct(
-        private string  $namespace,
         Serializer|null $serializer = null,
+        private string  $namespace,
     )
     {
         $this->namespace = sha1($this->namespace) . ':';
