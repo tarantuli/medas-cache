@@ -1,7 +1,7 @@
 {
   "name": "morphp/medas-cache",
   "description": "Contains a base cache and a file system cache implementation",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "keywords": [
     "storage",
     "backend"
@@ -15,7 +15,7 @@
   "type": "library",
   "require": {
     "morphp/medas-core": "^1",
-    "morphp/medas-file-syste": "^1",
+    "morphp/medas-file-system": "^1",
     "php": "^8.2"
   },
   "require-dev": {
