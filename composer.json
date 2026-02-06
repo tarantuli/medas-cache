@@ -1,28 +1,30 @@
 {
-    "name": "morphp/medas-cache",
-    "description": "Contains a base cache and a file system cache implementation",
-    "keywords": ["storage", "backend"],
-    "authors": [
-        {
-            "name": "Patrick Morpey",
-            "email": "patrick@morphp.nl"
-        }
-    ],
-    "type": "library",
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-        "morphp/medas-core": "dev-dev",
-        "morphp/medas-file-system": "dev-dev"
-    },
-    "require-dev": {
-        "morphp/medas-service-manager": "dev-dev",
-        "phpunit/phpunit": "^9.5"
-    },
-    "autoload": {
-        "psr-4": {
-            "Medas\\Cache\\": "src/",
-            "Medas\\CacheTest\\": "tests/"
-        }
+  "name": "morphp/medas-cache",
+  "description": "Contains a base cache and a file system cache implementation",
+  "version": "2.0.0",
+  "keywords": [
+    "storage",
+    "backend"
+  ],
+  "authors": [
+    {
+      "name": "Patrick Morpey",
+      "email": "patrick@morphp.nl"
     }
+  ],
+  "type": "library",
+  "require": {
+    "morphp/medas-core": "^2",
+    "morphp/medas-file-system": "^2"
+  },
+  "require-dev": {
+    "morphp/medas-service-manager": "^2",
+    "phpunit/phpunit": "^9.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Medas\\Cache\\": "src/",
+      "Medas\\CacheTest\\": "tests/"
+    }
+  }
 }
