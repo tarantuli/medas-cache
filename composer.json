@@ -15,7 +15,8 @@
   "type": "library",
   "require": {
     "morphp/medas-core": "^2",
-    "morphp/medas-file-system": "^2"
+    "morphp/medas-file-system": "^2",
+    "php": "^8.4"
   },
   "require-dev": {
     "morphp/medas-service-manager": "^2",
