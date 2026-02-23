@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "morphp/medas-core",
-            "version": "v3.0.5",
+            "version": "v3.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tarantuli/medas-core.git",
-                "reference": "2aeb9305580f06ca55ad01dbcbedf34671c081e6"
+                "reference": "9ac1411f72f888cfe8eb42b929ce483da044a68e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-core/zipball/2aeb9305580f06ca55ad01dbcbedf34671c081e6",
-                "reference": "2aeb9305580f06ca55ad01dbcbedf34671c081e6",
+                "url": "https://api.github.com/repos/tarantuli/medas-core/zipball/9ac1411f72f888cfe8eb42b929ce483da044a68e",
+                "reference": "9ac1411f72f888cfe8eb42b929ce483da044a68e",
                 "shasum": ""
             },
             "require": {
@@ -47,10 +47,10 @@
                 "medas"
             ],
             "support": {
-                "source": "https://github.com/tarantuli/medas-core/tree/v3.0.5",
+                "source": "https://github.com/tarantuli/medas-core/tree/v3.0.7",
                 "issues": "https://github.com/tarantuli/medas-core/issues"
             },
-            "time": "2026-02-23T10:33:58+00:00"
+            "time": "2026-02-23T11:45:32+00:00"
         },
         {
             "name": "morphp/medas-file-system",

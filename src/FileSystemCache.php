@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\Interfaces\{FileSystemCache as FileSystemCacheInterface, Serializer};
+use Medas\Core\{
+    Interfaces\FileSystemCache as FileSystemCacheInterface,
+    Interfaces\Serializer,
+    Serializers\PhpSerializer
+};
 use Medas\FileSystem\{
     DirectoryCreator,
     FileFinder,
@@ -22,7 +26,7 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
 
     public function __construct(
         private string               $baseDirectory,
-        Serializer|null              $serializer = null,
+        private Serializer|null      $serializer = null,
         private readonly MemoryCache $memoryCache = new MemoryCache(),
     )
     {
@@ -39,13 +43,22 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
             $this->baseDirectory . DIRECTORY_SEPARATOR . 'locks'
         );
 
+        if (!file_exists($this->baseDirectory)) {
+            $this->directoryManager->create($this->baseDirectory);
+        }
+
         $this->registerDirToClear();
 
-        parent::__construct($serializer);
+        if ($this->serializer === null) {
+            $this->serializer = new PhpSerializer();
+        }
+
+        parent::__construct();
     }
 
     private function registerDirToClear(): void
     {
+        // medas/core will set the working directory equal to the project root, so this path should be relative to the project root
         $path = 'var/dirs-to-clear';
         $fileName = $path . DIRECTORY_SEPARATOR . sha1($this->baseDirectory);
 
@@ -62,28 +75,58 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
             return $this->memoryCache->fetch($key);
         }
 
-        $serializedValue = $this->fileWriter->read($this->getPath($key));
+        $path = $this->getPath($key);
+
+        // Read value from the file
+        $serializedValue = $this->fileWriter->read($path);
         $value = $this->serializer->unserialize($serializedValue);
 
-        $this->memoryCache->store($key, $value);
+        // Store in the memory cache
+        // We need to read the TTL file again because we need its value to store the value in the memory cache
+        $ttlPath = $path . '.ttl';
+        $expiredAt = $this->fileWriter->read($ttlPath);
+        $ttl = $expiredAt === 'never' ? 0 : (int) ($expiredAt - time());
+
+        $this->memoryCache->store($key, $value, $ttl);
 
         return $value;
     }
 
     public function exists(string $key): bool
     {
-        return $this->memoryCache->exists($key) || file_exists($this->getPath($key));
+        if ($this->memoryCache->exists($key)) {
+            return true;
+        }
+
+        $path = $this->getPath($key);
+
+        if (!file_exists($path)) {
+            return false;
+        }
+
+        $ttlPath = $path . '.ttl';
+        $expiredAt = $this->fileWriter->read($ttlPath);
+
+        if ($expiredAt === 'never') {
+            return true;
+        }
+
+        return (int) ($expiredAt - time()) > 0;
     }
 
-    public function store(string $key, mixed $value): void
+    public function store(string $key, mixed $value, int $ttl): void
     {
-        $this->memoryCache->store($key, $value);
+        $this->memoryCache->store($key, $value, $ttl);
 
         $serializedValue = $this->serializer->serialize($value);
         $path = $this->getPath($key);
 
         $this->directoryManager->create(pathinfo($path, PATHINFO_DIRNAME));
         $this->fileWriter->write($path, $serializedValue);
+
+        $ttlFile = $path . '.ttl';
+
+        $this->fileWriter->write($ttlFile, $ttl > 0 ? (string) (time() + $ttl) : 'never');
     }
 
     public function delete(string $key): void
@@ -92,6 +135,12 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
 
         if (file_exists($path)) {
             unlink($path);
+        }
+
+        $ttlFile = $path . '.ttl';
+
+        if (file_exists($ttlFile)) {
+            unlink($ttlFile);
         }
 
         $this->memoryCache->delete($key);
@@ -112,16 +161,12 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
 
     public function isSupported(): bool
     {
-        if (!file_exists($this->baseDirectory)) {
-            $this->directoryManager->create($this->baseDirectory);
-        }
-
         return is_dir($this->baseDirectory) && is_writeable($this->baseDirectory);
     }
 
     public function clear(): void
     {
-        $files = $this->fileFinder->find($this->baseDirectory, '//');
+        $files = $this->fileFinder->find($this->baseDirectory, '/.+/');
 
         foreach ($files as $file) {
             unlink($file);

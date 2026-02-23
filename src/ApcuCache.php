@@ -4,19 +4,18 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\{Attributes\Service, Interfaces\Serializer};
+use Medas\Core\Attributes\Service;
 
 #[Service]
 class ApcuCache extends BaseCache
 {
     public function __construct(
-        private string  $namespace,
-        Serializer|null $serializer = null,
+        private string $namespace,
     )
     {
         $this->namespace = sha1($this->namespace) . ':';
 
-        parent::__construct($serializer);
+        parent::__construct();
     }
 
     public function isSupported(): bool
@@ -45,9 +44,9 @@ class ApcuCache extends BaseCache
         return $value;
     }
 
-    public function store(string $key, mixed $value): void
+    public function store(string $key, mixed $value, int $ttl): void
     {
-        apcu_store($this->namespace . $key, $value);
+        apcu_store($this->namespace . $key, $value, $ttl);
     }
 
     public function clear(): void

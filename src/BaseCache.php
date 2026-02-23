@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\{
-    Interfaces\Cache,
-    Interfaces\Clearable,
-    Interfaces\Serializer,
-    Serializers\PhpSerializer
-};
+use Medas\Core\Interfaces\{Cache, Clearable};
 
-abstract class BaseCache implements Cache, Clearable
+abstract class BaseCache implements Cache, Clearable, Interfaces\NormalizesKeys
 {
     abstract public function isSupported(): bool;
 
@@ -21,40 +16,16 @@ abstract class BaseCache implements Cache, Clearable
 
     abstract public function fetch(string $key): mixed;
 
-    abstract public function store(string $key, mixed $value): void;
+    abstract public function store(string $key, mixed $value, int $ttl): void;
 
-    public function __construct(
-        protected Serializer|null $serializer = null,
-    )
+    public function __construct()
     {
         if (!$this->isSupported()) {
             throw new Exceptions\CacheTypeNotSupported(static::class);
         }
-
-        if ($this->serializer === null) {
-            $this->serializer = new PhpSerializer();
-        }
     }
 
-    public function set(string|array $key, mixed $value): void
-    {
-        $normalizedKey = $this->normalizeKey($key);
-
-        $this->store($normalizedKey, $value);
-
-        if ($this instanceof Interfaces\HasKeyRegister) {
-            $this->registerKey($key, $normalizedKey);
-        }
-    }
-
-    public function remove(array|string $key): void
-    {
-        $key = $this->normalizeKey($key);
-
-        $this->delete($key);
-    }
-
-    public function get(array|string $key, callable $getter): mixed
+    public function get(array|string $key, callable $getter, int $ttl = 0): mixed
     {
         $normalizedKey = $this->normalizeKey($key);
 
@@ -64,17 +35,34 @@ abstract class BaseCache implements Cache, Clearable
         else {
             $value = $getter();
 
-            $this->store($normalizedKey, $value);
-
-            if ($this instanceof Interfaces\HasKeyRegister) {
-                $this->registerKey($key, $normalizedKey);
-            }
+            $this->store($normalizedKey, $value, $ttl);
         }
 
         return $value;
     }
 
-    private function normalizeKey(array|string $key): string
+    public function set(string|array $key, mixed $value, int $ttl = 0): void
+    {
+        $normalizedKey = $this->normalizeKey($key);
+
+        $this->store($normalizedKey, $value, $ttl);
+    }
+
+    public function remove(array|string $key): void
+    {
+        $key = $this->normalizeKey($key);
+
+        $this->delete($key);
+    }
+
+    public function contains(array|string $key): bool
+    {
+        $key = $this->normalizeKey($key);
+
+        return $this->exists($key);
+    }
+
+    public function normalizeKey(array|string $key): string
     {
         return is_array($key) ? implode("\0", $key) : $key;
     }
