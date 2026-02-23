@@ -36,7 +36,13 @@ class ApcuCache extends BaseCache
 
     public function fetch(string $key): mixed
     {
-        return apcu_fetch($this->namespace . $key);
+        $value = apcu_fetch($this->namespace . $key, $success);
+
+        if (!$success) {
+            throw new Exceptions\ApcuKeyDisappeared($key);
+        }
+
+        return $value;
     }
 
     public function store(string $key, mixed $value): void
@@ -46,8 +52,8 @@ class ApcuCache extends BaseCache
 
     public function clear(): void
     {
-        foreach (new \APCUIterator("/^$this->namespace/", APC_ITER_KEY, 1000) as $key) {
-            apcu_delete($key);
+        foreach (new \APCUIterator("/^$this->namespace/", APC_ITER_KEY, 1000) as $item) {
+            apcu_delete($item['key']);
         }
     }
 }

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\Interfaces\Cache;
+use Medas\Core\Interfaces\{Cache, Clearable};
 
-readonly class KeyRegisterDecorator implements Interfaces\HasKeyRegister, Cache
+readonly class KeyRegisterDecorator implements Interfaces\HasKeyRegister, Cache, Clearable
 {
     public function __construct(
         private Cache  $cache,
@@ -56,6 +56,11 @@ readonly class KeyRegisterDecorator implements Interfaces\HasKeyRegister, Cache
         }
 
         return $keys;
+    }
+
+    public function clear(): void
+    {
+        file_put_contents($this->keyFilePath(), '{}');
     }
 
     private function keyFilePath(): string

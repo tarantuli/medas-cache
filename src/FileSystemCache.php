@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace Medas\Cache;
 
 use Medas\Core\Interfaces\{FileSystemCache as FileSystemCacheInterface, Serializer};
-use Medas\FileSystem\{DirectoryCreator, FileFinder, LockingFileWriter, PathNormalizer};
+use Medas\FileSystem\{
+    DirectoryCreator,
+    FileFinder,
+    LockingFileWriter,
+    PathNormalizer,
+    PathValidator
+};
 
-class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
+class FileSystemCache extends BaseCache implements FileSystemCacheInterface
 {
     private DirectoryCreator $directoryManager;
     private FileFinder $fileFinder;
@@ -15,8 +21,9 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
     private LockingFileWriter $fileWriter;
 
     public function __construct(
-        private string  $baseDirectory,
-        Serializer|null $serializer = null,
+        private string               $baseDirectory,
+        Serializer|null              $serializer = null,
+        private readonly MemoryCache $memoryCache = new MemoryCache(),
     )
     {
         // Create new instances instead of injecting services
@@ -24,8 +31,13 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
         $this->directoryManager = new DirectoryCreator();
         $this->fileFinder = new FileFinder();
         $this->pathNormalizer = new PathNormalizer();
-        $this->fileWriter = new LockingFileWriter($this->baseDirectory . DIRECTORY_SEPARATOR . 'locks');
         $this->baseDirectory = $this->pathNormalizer->normalize($this->baseDirectory);
+        $pathValidator = new PathValidator(new PathNormalizer(), [$this->baseDirectory]);
+
+        $this->fileWriter = new LockingFileWriter(
+            $pathValidator,
+            $this->baseDirectory . DIRECTORY_SEPARATOR . 'locks'
+        );
 
         $this->registerDirToClear();
 
@@ -46,26 +58,26 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
 
     public function fetch(string $key): mixed
     {
-        if (parent::exists($key)) {
-            return parent::fetch($key);
+        if ($this->memoryCache->exists($key)) {
+            return $this->memoryCache->fetch($key);
         }
 
         $serializedValue = $this->fileWriter->read($this->getPath($key));
         $value = $this->serializer->unserialize($serializedValue);
 
-        parent::store($key, $value);
+        $this->memoryCache->store($key, $value);
 
         return $value;
     }
 
     public function exists(string $key): bool
     {
-        return parent::exists($key) || file_exists($this->getPath($key));
+        return $this->memoryCache->exists($key) || file_exists($this->getPath($key));
     }
 
     public function store(string $key, mixed $value): void
     {
-        parent::store($key, $value);
+        $this->memoryCache->store($key, $value);
 
         $serializedValue = $this->serializer->serialize($value);
         $path = $this->getPath($key);
@@ -82,7 +94,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
             unlink($path);
         }
 
-        parent::delete($key);
+        $this->memoryCache->delete($key);
     }
 
     private function getPath(string $key): string
@@ -115,7 +127,7 @@ class FileSystemCache extends MemoryCache implements FileSystemCacheInterface
             unlink($file);
         }
 
-        parent::clear();
+        $this->memoryCache->clear();
     }
 
     public function baseDirectory(): string
