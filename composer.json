@@ -18,12 +18,17 @@
     "php": "^8.4"
   },
   "require-dev": {
+    "morphp/medas-object-instantiator": "^3",
     "morphp/medas-service-manager": "^3",
     "phpunit/phpunit": "^10"
   },
   "autoload": {
     "psr-4": {
-      "Medas\\Cache\\": "src/",
+      "Medas\\Cache\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
       "Medas\\CacheTest\\": "tests/"
     }
   }

@@ -79,6 +79,7 @@ class KeyRegisterDecorator implements Cache, Clearable
     public function clear(): void
     {
         $this->keys = [];
+
         file_put_contents($this->keyFilePath(), '{}');
 
         if ($this->cache instanceof Clearable) {

@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a69f6b75294bedc9d5d88eefd627bf3e",
+    "content-hash": "fb6d43041ba29cc046b8474c65ed00bd",
     "packages": [
         {
             "name": "morphp/medas-core",
-            "version": "v3.0.7",
+            "version": "v3.0.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tarantuli/medas-core.git",
-                "reference": "9ac1411f72f888cfe8eb42b929ce483da044a68e"
+                "reference": "fae885573b091952f7f99d7d9e6c689ec37f936f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-core/zipball/9ac1411f72f888cfe8eb42b929ce483da044a68e",
-                "reference": "9ac1411f72f888cfe8eb42b929ce483da044a68e",
+                "url": "https://api.github.com/repos/tarantuli/medas-core/zipball/fae885573b091952f7f99d7d9e6c689ec37f936f",
+                "reference": "fae885573b091952f7f99d7d9e6c689ec37f936f",
                 "shasum": ""
             },
             "require": {
@@ -26,13 +26,17 @@
                 "psr/event-dispatcher": "^1.0"
             },
             "require-dev": {
-                "morphp/medas-service-manager": "^2",
+                "morphp/medas-service-manager": "^3",
                 "phpunit/phpunit": "^10"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "Medas\\Core\\": "src/",
+                    "Medas\\Core\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
                     "Medas\\CoreTest\\": "tests/"
                 }
             },
@@ -47,10 +51,10 @@
                 "medas"
             ],
             "support": {
-                "source": "https://github.com/tarantuli/medas-core/tree/v3.0.7",
+                "source": "https://github.com/tarantuli/medas-core/tree/v3.0.13",
                 "issues": "https://github.com/tarantuli/medas-core/issues"
             },
-            "time": "2026-02-23T11:45:32+00:00"
+            "time": "2026-02-27T10:01:49+00:00"
         },
         {
             "name": "morphp/medas-file-system",
@@ -197,16 +201,16 @@
         },
         {
             "name": "morphp/medas-object-instantiator",
-            "version": "v3.0.3",
+            "version": "v3.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tarantuli/medas-object-instantiator.git",
-                "reference": "f6261d5ed59ed7e2223c88a6a1957154ef0f3b1a"
+                "reference": "01ccd7856616cc32542ecc9ff739614179b63e5e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-object-instantiator/zipball/f6261d5ed59ed7e2223c88a6a1957154ef0f3b1a",
-                "reference": "f6261d5ed59ed7e2223c88a6a1957154ef0f3b1a",
+                "url": "https://api.github.com/repos/tarantuli/medas-object-instantiator/zipball/01ccd7856616cc32542ecc9ff739614179b63e5e",
+                "reference": "01ccd7856616cc32542ecc9ff739614179b63e5e",
                 "shasum": ""
             },
             "require": {
@@ -220,7 +224,11 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "Medas\\ObjectInstantiator\\": "src/",
+                    "Medas\\ObjectInstantiator\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
                     "Medas\\ObjectInstantiatorTest\\": "tests/"
                 }
             },
@@ -235,39 +243,43 @@
                 "services"
             ],
             "support": {
-                "source": "https://github.com/tarantuli/medas-object-instantiator/tree/v3.0.3",
+                "source": "https://github.com/tarantuli/medas-object-instantiator/tree/v3.0.5",
                 "issues": "https://github.com/tarantuli/medas-object-instantiator/issues"
             },
-            "time": "2026-02-23T10:18:29+00:00"
+            "time": "2026-02-27T11:29:18+00:00"
         },
         {
             "name": "morphp/medas-service-manager",
-            "version": "v3.0.8",
+            "version": "v3.0.12",
             "source": {
                 "type": "git",
                 "url": "https://github.com/tarantuli/medas-service-manager.git",
-                "reference": "20a8d48dde1368b0129f53527c1574a58422bf26"
+                "reference": "9b87eafc909397a58e3b6357761eb311f09d4ff6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/tarantuli/medas-service-manager/zipball/20a8d48dde1368b0129f53527c1574a58422bf26",
-                "reference": "20a8d48dde1368b0129f53527c1574a58422bf26",
+                "url": "https://api.github.com/repos/tarantuli/medas-service-manager/zipball/9b87eafc909397a58e3b6357761eb311f09d4ff6",
+                "reference": "9b87eafc909397a58e3b6357761eb311f09d4ff6",
                 "shasum": ""
             },
             "require": {
                 "ext-mbstring": "*",
                 "morphp/medas-console": "^3",
                 "morphp/medas-core": "^3",
-                "morphp/medas-object-instantiator": "^3",
                 "php": "^8.4"
             },
             "require-dev": {
+                "morphp/medas-object-instantiator": "^3",
                 "phpunit/phpunit": "^10"
             },
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "Medas\\ServiceManager\\": "src/",
+                    "Medas\\ServiceManager\\": "src/"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
                     "Medas\\ServiceManagerTest\\": "tests/"
                 }
             },
@@ -282,10 +294,10 @@
                 "services"
             ],
             "support": {
-                "source": "https://github.com/tarantuli/medas-service-manager/tree/v3.0.8",
+                "source": "https://github.com/tarantuli/medas-service-manager/tree/v3.0.12",
                 "issues": "https://github.com/tarantuli/medas-service-manager/issues"
             },
-            "time": "2026-02-23T10:40:50+00:00"
+            "time": "2026-02-27T11:26:19+00:00"
         },
         {
             "name": "myclabs/deep-copy",
