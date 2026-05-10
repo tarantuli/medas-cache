@@ -18,7 +18,6 @@
     "php": "^8.4"
   },
   "require-dev": {
-    "morphp/medas-object-instantiator": "^3",
     "morphp/medas-service-manager": "^3",
     "phpunit/phpunit": "^10"
   },
