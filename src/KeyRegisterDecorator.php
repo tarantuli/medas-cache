@@ -11,7 +11,7 @@ class KeyRegisterDecorator implements Cache, Clearable
     private array $keys;
 
     public function __construct(
-        private readonly Cache  $cache,
+        private readonly Cache  & Interfaces\TransformsKeys $cache,
         private readonly string $baseDirectory,
     )
     {
@@ -39,8 +39,8 @@ class KeyRegisterDecorator implements Cache, Clearable
         $alreadyExisted = $this->cache->contains($key);
         $value = $this->cache->get($key, $getter, $ttl);
 
-        if (!$alreadyExisted && $this->cache instanceof Interfaces\NormalizesKeys) {
-            $this->registerKey($key, $this->cache->normalizeKey($key));
+        if (!$alreadyExisted) {
+            $this->registerKey($key);
         }
 
         return $value;
@@ -49,10 +49,7 @@ class KeyRegisterDecorator implements Cache, Clearable
     public function set(array|string $key, mixed $value, int $ttl = 0): void
     {
         $this->cache->set($key, $value, $ttl);
-
-        if ($this->cache instanceof Interfaces\NormalizesKeys) {
-            $this->registerKey($key, $this->cache->normalizeKey($key));
-        }
+        $this->registerKey($key);
     }
 
     public function remove(array|string $key): void
@@ -65,13 +62,15 @@ class KeyRegisterDecorator implements Cache, Clearable
         return $this->cache->contains($key);
     }
 
-    public function registerKey(array|string $key, string $normalizedKey): void
+    public function registerKey(array|string $key): void
     {
-        if (array_key_exists($normalizedKey, $this->keys)) {
+        $transformedKey = $this->cache->transformKey($key);
+
+        if (array_key_exists($transformedKey, $this->keys)) {
             return;
         }
 
-        $this->keys[$normalizedKey] = $key;
+        $this->keys[$transformedKey] = $key;
 
         file_put_contents($this->keyFilePath(), json_encode($this->keys, JSON_PRETTY_PRINT));
     }

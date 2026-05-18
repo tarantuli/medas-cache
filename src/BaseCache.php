@@ -6,7 +6,7 @@ namespace Medas\Cache;
 
 use Medas\Core\Interfaces\{Cache, Clearable};
 
-abstract class BaseCache implements Cache, Clearable, Interfaces\NormalizesKeys
+abstract class BaseCache implements Cache, Clearable, Interfaces\TransformsKeys
 {
     abstract public function isSupported(): bool;
 
@@ -65,5 +65,10 @@ abstract class BaseCache implements Cache, Clearable, Interfaces\NormalizesKeys
     public function normalizeKey(array|string $key): string
     {
         return is_array($key) ? implode("\0", $key) : $key;
+    }
+
+    public function transformKey(array|string $key): string
+    {
+        return $this->normalizeKey($key);
     }
 }

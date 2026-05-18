@@ -146,19 +146,6 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
         $this->memoryCache->delete($key);
     }
 
-    private function getPath(string $key): string
-    {
-        $hashedKey = sha1($key);
-
-        return $this->baseDirectory
-            . DIRECTORY_SEPARATOR
-            . substr($hashedKey, 0, 1)
-            . DIRECTORY_SEPARATOR
-            . substr($hashedKey, 1, 1)
-            . DIRECTORY_SEPARATOR
-            . substr($hashedKey, 2);
-    }
-
     public function isSupported(): bool
     {
         return is_dir($this->baseDirectory) && is_writeable($this->baseDirectory);
@@ -178,5 +165,23 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
     public function baseDirectory(): string
     {
         return $this->baseDirectory;
+    }
+
+    public function transformKey(array|string $key): string
+    {
+        return $this->getPath($key);
+    }
+
+    private function getPath(string $key): string
+    {
+        $hashedKey = sha1($key);
+
+        return $this->baseDirectory
+            . DIRECTORY_SEPARATOR
+            . substr($hashedKey, 0, 1)
+            . DIRECTORY_SEPARATOR
+            . substr($hashedKey, 1, 1)
+            . DIRECTORY_SEPARATOR
+            . substr($hashedKey, 2);
     }
 }
