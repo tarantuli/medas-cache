@@ -169,7 +169,7 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
 
     public function transformKey(array|string $key): string
     {
-        return $this->getPath($key);
+        return $this->getPath($this->normalizeKey($key));
     }
 
     private function getPath(string $key): string
