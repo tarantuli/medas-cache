@@ -52,21 +52,27 @@ class CheckServices implements Cache
             $this->serviceManager = sm();
         }
 
-        if (is_object($value) && $this->serviceManager->findImplementingClass($value::class) !== null) {
-            throw new Exceptions\ValueContainsService($key, $value);
-        }
-
         if (is_object($value)) {
-            $reflection = new \ReflectionClass($value);
+            if ($this->serviceManager->findImplementingClass($value::class) !== null) {
+                throw new Exceptions\ValueContainsService($key, $value);
+            }
 
-            foreach ($reflection->getProperties() as $property) {
-                if ($property->isInitialized($value)) {
-                    $this->check($key, $property->getValue($value));
+            if (method_exists($value, '__serialize')) {
+                foreach ($value->__serialize() as $item) {
+                    $this->check($key, $item);
+                }
+            }
+            else {
+                $reflection = new \ReflectionClass($value);
+
+                foreach ($reflection->getProperties() as $property) {
+                    if ($property->isInitialized($value)) {
+                        $this->check($key, $property->getValue($value));
+                    }
                 }
             }
         }
-
-        if (is_iterable($value)) {
+        elseif (is_iterable($value)) {
             foreach ($value as $item) {
                 $this->check($key, $item);
             }
