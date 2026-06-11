@@ -10,11 +10,17 @@ use Medas\ServiceManager\ServiceManager;
 class CheckServices implements Cache
 {
     private ServiceManager|null $serviceManager = null;
+    private bool $serviceManagerIsInitialized = false;
 
     public function __construct(
         private readonly Cache $inner,
     )
     {
+    }
+
+    public function serviceManagerIsInitialized(): void
+    {
+        $this->serviceManagerIsInitialized = true;
     }
 
     public function get(array|string $key, callable $getter, int $ttl = 0): mixed
@@ -38,6 +44,10 @@ class CheckServices implements Cache
 
     private function check(string|array $key, mixed $value): void
     {
+        if (!$this->serviceManagerIsInitialized) {
+            return;
+        }
+
         if ($this->serviceManager === null) {
             $this->serviceManager = sm();
         }
