@@ -53,7 +53,7 @@ class CheckServices implements Cache
         }
 
         if (is_object($value) && $this->serviceManager->findImplementingClass($value::class) !== null) {
-            throw new Exceptions\ValueContainsService($key);
+            throw new Exceptions\ValueContainsService($key, $value);
         }
 
         if (is_object($value)) {
