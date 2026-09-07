@@ -111,7 +111,7 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
             return true;
         }
 
-        return (int) ($expiredAt - time()) > 0;
+        return (int) $expiredAt - time() > 0;
     }
 
     public function store(string $key, mixed $value, int $ttl): void
