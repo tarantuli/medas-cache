@@ -28,7 +28,7 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
         private string               $baseDirectory,
         private Serializer|null      $serializer = null,
         private readonly MemoryCache $memoryCache = new MemoryCache(),
-        readonly bool                $clearCacheOnInstall = true,
+        private readonly bool        $clearCacheOnInstall = true,
     )
     {
         // Create new instances instead of injecting services
@@ -48,7 +48,7 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
             $this->directoryManager->create($this->baseDirectory);
         }
 
-        if ($clearCacheOnInstall) {
+        if ($this->clearCacheOnInstall) {
             $this->registerDirToClear();
         }
 
@@ -168,6 +168,11 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
     public function baseDirectory(): string
     {
         return $this->baseDirectory;
+    }
+
+    public function clearCacheOnInstall(): bool
+    {
+        return $this->clearCacheOnInstall;
     }
 
     public function transformKey(array|string $key): string
