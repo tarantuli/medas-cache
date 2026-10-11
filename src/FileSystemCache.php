@@ -9,20 +9,32 @@ use Medas\Core\{
     Interfaces\Serializer,
     Serializers\PhpSerializer
 };
-use Medas\FileSystem\{
-    DirectoryCreator,
-    FileFinder,
-    LockingFileWriter,
-    PathNormalizer,
-    PathValidator
-};
+use Medas\FileSystem\{DirectoryCreator, Exceptions\FailedToWriteFile, FileFinder, PathNormalizer};
 
+/**
+ * Stores each entry in its own file: a first line with the expiry time (a timestamp, or "never"), followed by the
+ * serialized value.
+ *
+ * Entries are read without locking. That's safe because they're written atomically: to a temporary file first, which
+ * is then renamed over the entry, so a reader sees either the old or the new entry, never a partially written one.
+ * Reading an entry is a single file read; values read are kept in a memory cache for the rest of the request.
+ *
+ * Paths are derived from a hash of the key within the base directory, so they can't point outside it.
+ */
 class FileSystemCache extends BaseCache implements FileSystemCacheInterface
 {
+    private const string ENTRY_EXTENSION = '.entry';
+    private const string NEVER_EXPIRES = 'never';
+
+    /**
+     * How long to keep retrying to replace or remove an entry. On Windows that fails while another process has the
+     * file open, which is only ever briefly.
+     */
+    private const float MAX_RETRY_TIME = 1.0;
+
     private DirectoryCreator $directoryManager;
     private FileFinder $fileFinder;
     private PathNormalizer $pathNormalizer;
-    private LockingFileWriter $fileWriter;
 
     public function __construct(
         private string               $baseDirectory,
@@ -37,12 +49,6 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
         $this->fileFinder = new FileFinder();
         $this->pathNormalizer = new PathNormalizer();
         $this->baseDirectory = $this->pathNormalizer->normalize($this->baseDirectory);
-        $pathValidator = new PathValidator(new PathNormalizer(), [$this->baseDirectory]);
-
-        $this->fileWriter = new LockingFileWriter(
-            $pathValidator,
-            $this->baseDirectory . DIRECTORY_SEPARATOR . 'locks'
-        );
 
         if (!file_exists($this->baseDirectory)) {
             $this->directoryManager->create($this->baseDirectory);
@@ -72,81 +78,157 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
         }
     }
 
+    /**
+     * Overridden so a value in the cache costs a single file read, instead of one to check whether it exists
+     * and another to fetch it.
+     */
+    public function get(array|string $key, callable $getter, int $ttl = 0): mixed
+    {
+        $normalizedKey = $this->normalizeKey($key);
+
+        if ($this->memoryCache->exists($normalizedKey)) {
+            return $this->memoryCache->fetch($normalizedKey);
+        }
+
+        $entry = $this->readEntry($normalizedKey);
+
+        if ($entry !== null) {
+            return $entry[0];
+        }
+
+        $value = $getter();
+
+        $this->store($normalizedKey, $value, $ttl);
+
+        return $value;
+    }
+
     public function fetch(string $key): mixed
     {
         if ($this->memoryCache->exists($key)) {
             return $this->memoryCache->fetch($key);
         }
 
-        $path = $this->getPath($key);
+        $entry = $this->readEntry($key);
 
-        // Read value from the file
-        $serializedValue = $this->fileWriter->read($path);
-        $value = $this->serializer->unserialize($serializedValue);
+        if ($entry === null) {
+            throw new Exceptions\CacheEntryExpired($key);
+        }
 
-        // Store in the memory cache
-        // We need to read the TTL file again because we need its value to store the value in the memory cache
-        $ttlPath = $path . '.ttl';
-        $expiredAt = $this->fileWriter->read($ttlPath);
-        $ttl = $expiredAt === 'never' ? 0 : (int) ($expiredAt - time());
-
-        $this->memoryCache->store($key, $value, $ttl);
-
-        return $value;
+        return $entry[0];
     }
 
     public function exists(string $key): bool
     {
-        if ($this->memoryCache->exists($key)) {
-            return true;
+        // Reading the entry right away means a fetch() that follows is served from the memory cache
+        return $this->memoryCache->exists($key) || $this->readEntry($key) !== null;
+    }
+
+    /**
+     * Reads the entry from its file and keeps its value in the memory cache. The value is wrapped in an array, so a
+     * cached null can be told apart from a missing entry.
+     *
+     * @return array{mixed}|null Null when there is no entry, or it has expired or can't be read
+     */
+    private function readEntry(string $key): array|null
+    {
+        // No separate existence check: a missing file is just a failed read
+        $contents = @file_get_contents($this->getPath($key));
+
+        if ($contents === false) {
+            return null;
         }
 
-        $path = $this->getPath($key);
+        $headerEnd = strpos($contents, "\n");
 
-        if (!file_exists($path)) {
-            return false;
+        if ($headerEnd === false) {
+            return null;
         }
 
-        $ttlPath = $path . '.ttl';
-        $expiredAt = $this->fileWriter->read($ttlPath);
+        $expiresAt = substr($contents, 0, $headerEnd);
+        $ttl = 0;
 
-        if ($expiredAt === 'never') {
-            return true;
+        if ($expiresAt !== self::NEVER_EXPIRES) {
+            $ttl = (int) $expiresAt - time();
+
+            if ($ttl <= 0) {
+                return null;
+            }
         }
 
-        return (int) $expiredAt - time() > 0;
+        try {
+            $value = $this->serializer->unserialize(substr($contents, $headerEnd + 1));
+        }
+        catch (\Throwable) {
+            // A corrupted entry is treated as a missing one, so it's simply rebuilt
+            return null;
+        }
+
+        $this->memoryCache->store($key, $value, $ttl);
+
+        return [$value];
     }
 
     public function store(string $key, mixed $value, int $ttl): void
     {
         $this->memoryCache->store($key, $value, $ttl);
 
-        $serializedValue = $this->serializer->serialize($value);
+        $contents = ($ttl > 0 ? (string) (time() + $ttl) : self::NEVER_EXPIRES)
+            . "\n"
+            . $this->serializer->serialize($value);
+
         $path = $this->getPath($key);
 
         $this->directoryManager->create(pathinfo($path, PATHINFO_DIRNAME));
-        $this->fileWriter->write($path, $serializedValue);
+        $this->writeAtomically($path, $contents);
+    }
 
-        $ttlFile = $path . '.ttl';
+    private function writeAtomically(string $path, string $contents): void
+    {
+        // Unique per writer, so concurrent writers of the same entry don't write into each other's file
+        $temporaryPath = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
 
-        $this->fileWriter->write($ttlFile, $ttl > 0 ? (string) (time() + $ttl) : 'never');
+        if (@file_put_contents($temporaryPath, $contents) === false) {
+            throw new FailedToWriteFile($temporaryPath);
+        }
+
+        if (!$this->retry(fn() => @rename($temporaryPath, $path))) {
+            @unlink($temporaryPath);
+
+            throw new FailedToWriteFile($path);
+        }
     }
 
     public function delete(string $key): void
     {
         $path = $this->getPath($key);
 
-        if (file_exists($path)) {
-            unlink($path);
-        }
-
-        $ttlFile = $path . '.ttl';
-
-        if (file_exists($ttlFile)) {
-            unlink($ttlFile);
-        }
-
         $this->memoryCache->delete($key);
+
+        if (!$this->retry(fn() => !file_exists($path) || @unlink($path))) {
+            throw new FailedToWriteFile($path);
+        }
+    }
+
+    /**
+     * Calls $operation until it returns true, backing off between attempts, for at most MAX_RETRY_TIME seconds.
+     */
+    private function retry(\Closure $operation): bool
+    {
+        $deadline = microtime(true) + self::MAX_RETRY_TIME;
+        $delay = 1000;
+
+        while (!$operation()) {
+            if (microtime(true) >= $deadline) {
+                return false;
+            }
+
+            usleep($delay);
+
+            $delay = min($delay * 2, 50000);
+        }
+
+        return true;
     }
 
     public function isSupported(): bool
@@ -159,7 +241,7 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
         $files = $this->fileFinder->find($this->baseDirectory, '/.+/');
 
         foreach ($files as $file) {
-            unlink($file);
+            @unlink($file);
         }
 
         $this->memoryCache->clear();
@@ -190,6 +272,7 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
             . DIRECTORY_SEPARATOR
             . substr($hashedKey, 1, 1)
             . DIRECTORY_SEPARATOR
-            . substr($hashedKey, 2);
+            . substr($hashedKey, 2)
+            . self::ENTRY_EXTENSION;
     }
 }

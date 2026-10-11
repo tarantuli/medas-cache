@@ -8,16 +8,20 @@ Provides a unified caching abstraction with multiple backend implementations. Al
 
 Available backends:
 
-| Class             | Backend                    | Notes                                                                                             |
-|-------------------|----------------------------|---------------------------------------------------------------------------------------------------|
-| `MemoryCache`     | PHP array (request-scoped) | Always available; used as a first-level layer inside `FileSystemCache`                            |
-| `FileSystemCache` | Local filesystem           | SHA1-sharded directory layout; locking writes; pluggable serializer (defaults to `PhpSerializer`) |
-| `ApcuCache`       | APCu shared memory         | Requires the `apcu` extension; namespaced via SHA1 prefix                                         |
-| `RedisCache`      | Redis                      | Requires the `redis` extension and a `\Redis` instance; namespaced via SHA1 prefix                |
+| Class             | Backend                    | Notes                                                                                                                                     |
+|-------------------|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| `MemoryCache`     | PHP array (request-scoped) | Always available; used as a first-level layer inside `FileSystemCache` and `ApcuCache`                                                    |
+| `FileSystemCache` | Local filesystem           | One file per entry in a SHA1-sharded directory layout; lock-free reads, atomic writes; pluggable serializer (defaults to `PhpSerializer`) |
+| `ApcuCache`       | APCu shared memory         | Requires the `apcu` extension; namespaced via SHA1 prefix plus a generation that post-install renews                                      |
+| `RedisCache`      | Redis                      | Requires the `redis` extension and a `\Redis` instance; namespaced via SHA1 prefix                                                        |
 
 `KeyRegisterDecorator` wraps any `Cache & TransformsKeys` implementation to maintain a persistent JSON key index on disk — useful when you need to list or bulk-invalidate cached entries.
 
 All backends implement `Clearable` so the entire cache can be wiped with a single `clear()` call.
+
+`FileSystemCache` and `ApcuCache` keep every value they read or write in a `MemoryCache` for the rest of the request, so a key asked for several times per request is only read and unserialized once. A cache hit through `get()` costs a single read (one file read, or one `apcu_fetch`).
+
+**`FileSystemCache` entries** — each entry is one file (`<base directory>/<a>/<b>/<rest of the SHA1 of the key>.entry`) with the expiry time (a timestamp, or `never`) on its first line, followed by the serialized value. Entries are read without locking. That's safe because they're written atomically: to a temporary file first, which is then renamed over the entry, so a reader always sees either the old or the new entry. On Windows, renaming over a file fails while another process has it open; the write is then retried for up to a second. Expired, unreadable or corrupt entries count as missing and are rebuilt.
 
 ## Usage
 
@@ -80,6 +84,23 @@ $result = $cache->get(
     getter: fn() => runExpensiveQuery(),
     ttl: 300,
 );
+```
+
+APCu memory belongs to the web server process, so a post-install script running on the command line can't clear
+it. Instead, keys carry a generation kept in a marker file in `var/apcu-generations` (configurable through the
+second constructor argument). That directory is registered in `var/dirs-to-clear`, so the post-install script removes
+the marker; the next request then starts a new generation and no longer sees the old entries, which APCu evicts when it
+needs the memory. `clear()` deletes all generations of the namespace from the current process's APCu memory and removes
+the marker as well.
+
+The constructor throws `CacheTypeNotSupported` when APCu can't be used in the current process. On the command line
+APCu is usually disabled (`apc.enable_cli`), and even when enabled, a CLI process has its own, empty APCu memory. Use
+`ApcuCache::isAvailable()` to fall back to another cache there, e.g. in `bootstrap.php`:
+
+```php
+$cache = ApcuCache::isAvailable()
+    ? new ApcuCache('my-app')
+    : new FileSystemCache(__DIR__ . '/var/cache');
 ```
 
 **Redis cache** — for distributed or persistent caching across multiple servers:
@@ -145,11 +166,13 @@ if ($cache->contains(['report', 'monthly', '2026-05'])) {
 }
 ```
 
-**Clearing the entire cache** (e.g., after a deployment or data migration):
+**Clearing the entire cache** (e.g. after a deployment or data migration):
 
 ```php
 // Works on all backends — MemoryCache, FileSystemCache, ApcuCache, RedisCache
 $cache->clear();
 ```
 
-For `FileSystemCache`, the framework also registers each cache directory under `var/dirs-to-clear` so a single framework-level flush command can wipe all file caches at once without having to list them manually.
+For `FileSystemCache` (unless constructed with `clearCacheOnInstall: false`), each cache directory is registered under `var/dirs-to-clear`, so the post-install script empties all file caches at once without having to list them manually. `ApcuCache` registers its generation directory there in the same way.
+
+After upgrading to this version, clear the file caches once: files in the previous format (a value file plus a `.ttl` file, and a `locks` directory) are no longer read.
