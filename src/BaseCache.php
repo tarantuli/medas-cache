@@ -30,13 +30,18 @@ abstract class BaseCache implements Cache, Clearable, Interfaces\TransformsKeys
         $normalizedKey = $this->normalizeKey($key);
 
         if ($this->exists($normalizedKey)) {
-            $value = $this->fetch($normalizedKey);
+            try {
+                return $this->fetch($normalizedKey);
+            }
+            catch (Exceptions\CacheEntryExpired) {
+                // The entry can expire between exists() and fetch() when the clock moves on to the next second;
+                // it is then built anew, as if it had not existed
+            }
         }
-        else {
-            $value = $getter();
 
-            $this->store($normalizedKey, $value, $ttl);
-        }
+        $value = $getter();
+
+        $this->store($normalizedKey, $value, $ttl);
 
         return $value;
     }
