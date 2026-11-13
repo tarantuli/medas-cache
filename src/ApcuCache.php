@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
+use Medas\Core\Attributes\Entrypoint;
 use Medas\FileSystem\DirectoryCreator;
 
 /**
@@ -29,6 +30,7 @@ use Medas\FileSystem\DirectoryCreator;
  *        worker, keeps using its generation after the marker has been removed, until `clear()` is called on it.
  * @see \Medas\ServiceManager\Cache\DirectoriesToClear
  */
+#[Entrypoint]
 class ApcuCache extends BaseCache
 {
     /**

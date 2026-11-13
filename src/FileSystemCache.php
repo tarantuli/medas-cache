@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Medas\Cache;
 
 use Medas\Core\{
+    Attributes\Entrypoint,
     Interfaces\FileSystemCache as FileSystemCacheInterface,
     Interfaces\Serializer,
     Serializers\PhpSerializer
@@ -29,6 +30,7 @@ use Medas\FileSystem\{DirectoryCreator, Exceptions\FailedToWriteFile, FileFinder
  * @state Keeps every value it reads or writes in its `MemoryCache` for the lifetime of the instance.
  * @see \Medas\ServiceManager\Cache\DirectoriesToClear
  */
+#[Entrypoint]
 class FileSystemCache extends BaseCache implements FileSystemCacheInterface
 {
     private const string ENTRY_EXTENSION = '.entry';

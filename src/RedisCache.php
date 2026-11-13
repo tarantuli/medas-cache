@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
+use Medas\Core\Attributes\Entrypoint;
+
 /**
  * Stores values in Redis, serialised with `serialize()`, under a prefix derived from the namespace.
  *
@@ -15,6 +17,7 @@ namespace Medas\Cache;
  *
  * @assumes The `\Redis` instance is connected, and stays usable for the lifetime of the cache.
  */
+#[Entrypoint]
 class RedisCache extends BaseCache
 {
     private string $keyPrefix;

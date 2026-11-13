@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\Interfaces\MemoryCache as MemoryCacheInterface;
+use Medas\Core\{Attributes\Entrypoint, Interfaces\MemoryCache as MemoryCacheInterface};
 
 /**
  * Keeps values in a PHP array, for the rest of the request or the lifetime of the process.
@@ -18,6 +18,7 @@ use Medas\Core\Interfaces\MemoryCache as MemoryCacheInterface;
  * @see \Medas\ServiceManager\Cache\CacheManager Creates one as the `'memory'` cache, through the binding that
  *      `CachePackage` adds for @class(Medas\Core\Interfaces\MemoryCache).
  */
+#[Entrypoint]
 class MemoryCache extends BaseCache implements MemoryCacheInterface
 {
     private array $data = [];
