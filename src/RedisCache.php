@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\Attributes\Service;
-
-#[Service]
 class RedisCache extends BaseCache
 {
     private string $keyPrefix;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\Attributes\Service;
 use Medas\FileSystem\DirectoryCreator;
 
 /**
@@ -21,7 +20,6 @@ use Medas\FileSystem\DirectoryCreator;
  * APCu unserializes objects on every fetch, so values are also kept in a memory cache for the rest of the request: a
  * value asked for several times per request is only fetched and unserialised once.
  */
-#[Service]
 class ApcuCache extends BaseCache
 {
     /**

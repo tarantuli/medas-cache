@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\{Attributes\Service, Interfaces\MemoryCache as MemoryCacheInterface};
+use Medas\Core\Interfaces\MemoryCache as MemoryCacheInterface;
 
-#[Service]
 class MemoryCache extends BaseCache implements MemoryCacheInterface
 {
     private array $data = [];
