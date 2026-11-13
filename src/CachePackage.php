@@ -23,11 +23,15 @@ class CachePackage extends BasePackage
         ];
     }
 
+    /**
+     * Binds `MemoryCache` to @class(Medas\Core\Interfaces\MemoryCache), which `CacheManager` looks up when the
+     * `'memory'` cache is first requested.
+     *
+     * It's bound by hand instead of with `#[Service]`, which would also map it to `Cache`, `Clearable` and
+     * `BaseCache`, so a parameter typed `Cache` would quietly get a request-scoped memory cache.
+     */
     public function initialize(ServiceConfigBuilder $config): void
     {
-        // Bound by hand instead of with #[Service], which would also map MemoryCache to Cache, Clearable and BaseCache,
-        // so a parameter typed Cache would quietly get a request-scoped memory cache. CacheManager looks this binding
-        // up when the 'memory' cache is first requested.
         $config->addTypeBinding(MemoryCache::class, MemoryCacheInterface::class);
     }
 

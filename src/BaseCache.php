@@ -4,20 +4,47 @@ declare(strict_types=1);
 
 namespace Medas\Cache;
 
-use Medas\Core\Interfaces\{Cache, Clearable};
+use Medas\Core\Interfaces\{Cache, Clearable, NotCacheable};
 
+/**
+ * Base class for the caches in this package. It implements the `Cache` interface on top of four primitives that each
+ * backend provides: `exists()`, `fetch()`, `storeEntry()` and `delete()`.
+ *
+ * The primitives take a normalised key: a key given as an array is joined with null bytes into one string. A
+ * `$ttl` of `0` means the entry never expires.
+ *
+ * Values that implement @class(Medas\Core\Interfaces\NotCacheable) aren't stored: `store()` deletes the entry for
+ * the key instead. Only the value itself is checked, not the objects it contains.
+ */
 abstract class BaseCache implements Cache, Clearable, Interfaces\TransformsKeys
 {
+    /**
+     * Whether the backend can be used in this process, e.g. whether its PHP extension is loaded.
+     */
     abstract public function isSupported(): bool;
 
     abstract public function delete(string $key): void;
 
     abstract public function exists(string $key): bool;
 
+    /**
+     * @assumes `exists()` returned `true` for the key just before.
+     */
     abstract public function fetch(string $key): mixed;
 
-    abstract public function store(string $key, mixed $value, int $ttl): void;
+    /**
+     * Stores the value in the backend. Only called by `store()`, so implementations don't need to check for
+     * `NotCacheable`.
+     *
+     * @param int $ttl In seconds; `0` means the entry never expires
+     */
+    abstract protected function storeEntry(string $key, mixed $value, int $ttl): void;
 
+    /**
+     * @assumes Subclasses set up everything `isSupported()` needs before calling this constructor.
+     *
+     * @throws Exceptions\CacheTypeNotSupported When `isSupported()` returns `false`.
+     */
     public function __construct()
     {
         if (!$this->isSupported()) {
@@ -25,6 +52,27 @@ abstract class BaseCache implements Cache, Clearable, Interfaces\TransformsKeys
         }
     }
 
+    /**
+     * Stores the value, unless it implements `NotCacheable`. Then the entry for the key is deleted instead, so an
+     * older value stored under the same key isn't returned later.
+     *
+     * @param int $ttl In seconds; `0` means the entry never expires
+     */
+    final public function store(string $key, mixed $value, int $ttl): void
+    {
+        if ($value instanceof NotCacheable) {
+            $this->delete($key);
+
+            return;
+        }
+
+        $this->storeEntry($key, $value, $ttl);
+    }
+
+    /**
+     * Checks with `exists()` and then calls `fetch()`, so a hit costs two lookups. Backends that can do it in one
+     * override this method.
+     */
     public function get(array|string $key, callable $getter, int $ttl = 0): mixed
     {
         $normalizedKey = $this->normalizeKey($key);
@@ -67,6 +115,9 @@ abstract class BaseCache implements Cache, Clearable, Interfaces\TransformsKeys
         return $this->exists($key);
     }
 
+    /**
+     * @param string|string[] $key
+     */
     public function normalizeKey(array|string $key): string
     {
         return is_array($key) ? implode("\0", $key) : $key;

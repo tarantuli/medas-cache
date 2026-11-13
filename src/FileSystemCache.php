@@ -20,6 +20,14 @@ use Medas\FileSystem\{DirectoryCreator, Exceptions\FailedToWriteFile, FileFinder
  * Reading an entry is a single file read; values read are kept in a memory cache for the rest of the request.
  *
  * Paths are derived from a hash of the key within the base directory, so they can't point outside it.
+ *
+ * @assumes The working directory is the project root, which medas/core takes care of. The `var/dirs-to-clear`
+ *          registry is relative to it.
+ * @sideEffect The constructor creates the base directory when it doesn't exist.
+ * @sideEffect Unless `$clearCacheOnInstall` is `false`, the constructor registers the base directory in
+ *             `var/dirs-to-clear`, so a `composer install` and `services:clear-caches` empty it.
+ * @state Keeps every value it reads or writes in its `MemoryCache` for the lifetime of the instance.
+ * @see \Medas\ServiceManager\Cache\DirectoriesToClear
  */
 class FileSystemCache extends BaseCache implements FileSystemCacheInterface
 {
@@ -36,6 +44,15 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
     private FileFinder $fileFinder;
     private PathNormalizer $pathNormalizer;
 
+    /**
+     * @param string          $baseDirectory       Relative to the project root, or absolute
+     * @param Serializer|null $serializer          Defaults to `PhpSerializer`
+     * @param MemoryCache     $memoryCache         The first layer in front of the files. Only share one with another
+     *                                             cache when they never use the same keys.
+     * @param bool            $clearCacheOnInstall Set to `false` for data that has to survive a `composer install`
+     *
+     * @throws Exceptions\CacheTypeNotSupported When the base directory isn't writable.
+     */
     public function __construct(
         private string               $baseDirectory,
         private Serializer|null      $serializer = null,
@@ -67,7 +84,8 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
 
     private function registerDirToClear(): void
     {
-        // medas/core will set the working directory equal to the project root, so this path should be relative to the project root
+        // medas/core will set the working directory equal to the project root, so this path should be relative to the
+        // project root
         $path = 'var/dirs-to-clear';
         $fileName = $path . DIRECTORY_SEPARATOR . sha1($this->baseDirectory);
 
@@ -169,36 +187,9 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
         return [$value];
     }
 
-    public function store(string $key, mixed $value, int $ttl): void
-    {
-        $this->memoryCache->store($key, $value, $ttl);
-
-        $contents = ($ttl > 0 ? (string) (time() + $ttl) : self::NEVER_EXPIRES)
-            . "\n"
-            . $this->serializer->serialize($value);
-
-        $path = $this->getPath($key);
-
-        $this->directoryManager->create(pathinfo($path, PATHINFO_DIRNAME));
-        $this->writeAtomically($path, $contents);
-    }
-
-    private function writeAtomically(string $path, string $contents): void
-    {
-        // Unique per writer, so concurrent writers of the same entry don't write into each other's file
-        $temporaryPath = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
-
-        if (@file_put_contents($temporaryPath, $contents) === false) {
-            throw new FailedToWriteFile($temporaryPath);
-        }
-
-        if (!$this->retry(fn() => @rename($temporaryPath, $path))) {
-            @unlink($temporaryPath);
-
-            throw new FailedToWriteFile($path);
-        }
-    }
-
+    /**
+     * @throws FailedToWriteFile When the entry's file can't be removed within a second.
+     */
     public function delete(string $key): void
     {
         $path = $this->getPath($key);
@@ -231,11 +222,19 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
         return true;
     }
 
+    /**
+     * Whether the base directory exists and is writable.
+     */
     public function isSupported(): bool
     {
         return is_dir($this->baseDirectory) && is_writeable($this->baseDirectory);
     }
 
+    /**
+     * Deletes every file in the base directory, also files that aren't entries, like the `key_index` of a
+     * `KeyRegisterDecorator` that uses the same directory. The directories are left in place, and files that can't be
+     * deleted are skipped silently.
+     */
     public function clear(): void
     {
         $files = $this->fileFinder->find($this->baseDirectory, '/.+/');
@@ -274,5 +273,40 @@ class FileSystemCache extends BaseCache implements FileSystemCacheInterface
             . DIRECTORY_SEPARATOR
             . substr($hashedKey, 2)
             . self::ENTRY_EXTENSION;
+    }
+
+    /**
+     * @sideEffect Writes the entry's file, creating its directories when needed.
+     *
+     * @throws FailedToWriteFile When the entry can't be written, or can't replace the previous one within a second.
+     */
+    protected function storeEntry(string $key, mixed $value, int $ttl): void
+    {
+        $this->memoryCache->store($key, $value, $ttl);
+
+        $contents = ($ttl > 0 ? (string) (time() + $ttl) : self::NEVER_EXPIRES)
+            . "\n"
+            . $this->serializer->serialize($value);
+
+        $path = $this->getPath($key);
+
+        $this->directoryManager->create(pathinfo($path, PATHINFO_DIRNAME));
+        $this->writeAtomically($path, $contents);
+    }
+
+    private function writeAtomically(string $path, string $contents): void
+    {
+        // Unique per writer, so concurrent writers of the same entry don't write into each other's file
+        $temporaryPath = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
+
+        if (@file_put_contents($temporaryPath, $contents) === false) {
+            throw new FailedToWriteFile($temporaryPath);
+        }
+
+        if (!$this->retry(fn() => @rename($temporaryPath, $path))) {
+            @unlink($temporaryPath);
+
+            throw new FailedToWriteFile($path);
+        }
     }
 }

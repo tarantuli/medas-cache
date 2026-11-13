@@ -1,6 +1,6 @@
 {
   "name": "morphp/medas-cache",
-  "description": "Contains a base cache and a file system cache implementation",
+  "description": "Caches behind one interface: in memory, on the file system, in APCu and in Redis, plus decorators that index keys or refuse services",
   "keywords": [
     "storage",
     "backend"

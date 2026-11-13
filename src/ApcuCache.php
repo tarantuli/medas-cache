@@ -11,20 +11,29 @@ use Medas\FileSystem\DirectoryCreator;
  *
  * APCu memory belongs to the web server process (Apache, PHP-FPM): a CLI process such as a post-install script gets
  * its own, empty memory, so it can't clear the web server's entries. Instead, the generation is kept in a small marker
- * file, in a directory registered in var/dirs-to-clear. When the post-install script clears that directory,
+ * file, in a directory registered in `var/dirs-to-clear`. When the post-install script clears that directory,
  * the next request finds no marker, starts a new generation, and so stops seeing the entries of the previous one.
  * Those are left for APCu to evict when it needs the memory.
  *
  * Reading the marker costs one small file read when the cache is constructed.
  *
- * APCu unserializes objects on every fetch, so values are also kept in a memory cache for the rest of the request: a
+ * APCu unserialises objects on every fetch, so values are also kept in a memory cache for the rest of the request: a
  * value asked for several times per request is only fetched and unserialised once.
+ *
+ * @assumes The working directory is the project root, which medas/core takes care of. The generation directory and
+ *          the `var/dirs-to-clear` registry are relative to it.
+ * @sideEffect When there's no marker, the constructor creates the generation directory, registers it in
+ *             `var/dirs-to-clear` and writes a new marker.
+ * @state Keeps every value it reads or writes in its `MemoryCache` for the lifetime of the instance. The generation is
+ *        read once, in the constructor, so an instance that lives longer than a request, like one in a long-running
+ *        worker, keeps using its generation after the marker has been removed, until `clear()` is called on it.
+ * @see \Medas\ServiceManager\Cache\DirectoriesToClear
  */
 class ApcuCache extends BaseCache
 {
     /**
      * Whether APCu can be used in this process. The constructor throws when it can't, so this lets a bootstrap choose
-     * another cache up front - e.g. on the command line, where APCu is usually disabled (apc.enable_cli).
+     * another cache up front - e.g. on the command line, where APCu is usually disabled (`apc.enable_cli`).
      */
     public static function isAvailable(): bool
     {
@@ -37,7 +46,15 @@ class ApcuCache extends BaseCache
     private string $keyPrefix;
 
     /**
-     * @param string $generationDirectory Relative to the project root, which medas/core makes the working directory
+     * @param string      $namespace           Keeps these entries apart from those of other `ApcuCache` instances, and
+     *                                         of other applications that share the same APCu memory
+     * @param MemoryCache $memoryCache         The first layer in front of APCu. Only share one with another cache
+     *                                         when they never use the same keys.
+     * @param string      $generationDirectory Relative to the project root, which medas/core makes the working
+     *                                         directory
+     *
+     * @throws Exceptions\CacheTypeNotSupported When APCu can't be used in this process; see
+     *                                                       `isAvailable()`.
      */
     public function __construct(
         string                       $namespace,
@@ -131,13 +148,6 @@ class ApcuCache extends BaseCache
         return [$value];
     }
 
-    public function store(string $key, mixed $value, int $ttl): void
-    {
-        $this->memoryCache->store($key, $value, $ttl);
-
-        apcu_store($this->keyPrefix . $key, $value, $ttl);
-    }
-
     /**
      * Deletes the entries of all generations of this namespace from this process's APCu memory, and removes the
      * marker, so other processes (e.g. the web server, when this runs on the command line) start a new generation too.
@@ -225,5 +235,15 @@ class ApcuCache extends BaseCache
 
             file_put_contents($fileName, $directory . "\n");
         }
+    }
+
+    /**
+     * A value APCu can't store, e.g. because its memory is full, is only kept in the memory cache, without an error.
+     */
+    protected function storeEntry(string $key, mixed $value, int $ttl): void
+    {
+        $this->memoryCache->store($key, $value, $ttl);
+
+        apcu_store($this->keyPrefix . $key, $value, $ttl);
     }
 }

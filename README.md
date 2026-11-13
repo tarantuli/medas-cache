@@ -15,13 +15,17 @@ Available backends:
 | `ApcuCache`       | APCu shared memory         | Requires the `apcu` extension; namespaced via SHA1 prefix plus a generation that post-install renews                                      |
 | `RedisCache`      | Redis                      | Requires the `redis` extension and a `\Redis` instance; namespaced via SHA1 prefix                                                        |
 
-`KeyRegisterDecorator` wraps any `Cache & TransformsKeys` implementation to maintain a persistent JSON key index on disk — useful when you need to list or bulk-invalidate cached entries.
+`KeyRegisterDecorator` wraps any `Cache & TransformsKeys` implementation and records every key it stores a value for in a JSON file (`key_index`), so you can see afterwards which keys a cache holds. The index is only written, not read back by code, and `remove()` leaves the key in it.
+
+`CheckServices` wraps any `Cache` and refuses values that contain a service object, throwing `ValueContainsService`. The check is off until `serviceManagerIsInitialized()` is called; the project or development environment that wants the check calls it once the service manager is up.
 
 All backends implement `Clearable` so the entire cache can be wiped with a single `clear()` call.
 
-`FileSystemCache` and `ApcuCache` keep every value they read or write in a `MemoryCache` for the rest of the request, so a key asked for several times per request is only read and unserialized once. A cache hit through `get()` costs a single read (one file read, or one `apcu_fetch`).
+Values that implement `NotCacheable` are returned as usual but never stored: storing one deletes the entry for that key instead, so an older value isn't returned later. Only the value itself is checked, not the objects inside it.
 
-**`FileSystemCache` entries** — each entry is one file (`<base directory>/<a>/<b>/<rest of the SHA1 of the key>.entry`) with the expiry time (a timestamp, or `never`) on its first line, followed by the serialized value. Entries are read without locking. That's safe because they're written atomically: to a temporary file first, which is then renamed over the entry, so a reader always sees either the old or the new entry. On Windows, renaming over a file fails while another process has it open; the write is then retried for up to a second. Expired, unreadable or corrupt entries count as missing and are rebuilt.
+`FileSystemCache` and `ApcuCache` keep every value they read or write in a `MemoryCache` for the rest of the request, so a key asked for several times per request is only read and unserialized once. A cache hit through `get()` costs a single read (one file read, or one `apcu_fetch`). `RedisCache` has no memory layer, but its `get()` also needs a single `GET`.
+
+**`FileSystemCache` entries** — each entry is one file (`<base directory>/<a>/<b>/<rest of the SHA1 of the key>.entry`) with the expiry time (a timestamp, or `never`) on its first line, followed by the serialized value. Entries are read without locking. That's safe because they're written atomically: to a temporary file first, which is then renamed over the entry, so a reader always sees either the old or the new entry. On Windows, renaming over a file fails while another process has it open; the write is then retried for up to a second. Expired, unreadable, or corrupt entries count as missing and are rebuilt.
 
 ## Usage
 
@@ -86,12 +90,12 @@ $result = $cache->get(
 );
 ```
 
-APCu memory belongs to the web server process, so a post-install script running on the command line can't clear
-it. Instead, keys carry a generation kept in a marker file in `var/apcu-generations` (configurable through the
-second constructor argument). That directory is registered in `var/dirs-to-clear`, so the post-install script removes
-the marker; the next request then starts a new generation and no longer sees the old entries, which APCu evicts when it
-needs the memory. `clear()` deletes all generations of the namespace from the current process's APCu memory and removes
-the marker as well.
+APCu memory belongs to the web server process, so a post-install script running on the command line can't clear it.
+Instead, keys carry a generation kept in a marker file in `var/apcu-generations` (configurable through the third
+constructor argument, `$generationDirectory`). That directory is registered in `var/dirs-to-clear`, so the
+post-install script removes the marker; the next request then starts a new generation and no longer sees the old
+entries, which APCu evicts when it needs the memory. `clear()` deletes all generations of the namespace from the
+current process's APCu memory and removes the marker as well.
 
 The constructor throws `CacheTypeNotSupported` when APCu can't be used in the current process. On the command line
 APCu is usually disabled (`apc.enable_cli`), and even when enabled, a CLI process has its own, empty APCu memory. Use

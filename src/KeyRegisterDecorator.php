@@ -6,10 +6,27 @@ namespace Medas\Cache;
 
 use Medas\Core\Interfaces\{Cache, Clearable};
 
+/**
+ * Wraps a cache and records every key it stores a value for in a JSON file, `key_index` in the base directory, so
+ * the keys can be looked up later, e.g. to see what a cache holds.
+ *
+ * The index maps the identifier the inner cache stores the entry under, from `transformKey()`, to the key as it was
+ * given. There's no method that returns the index: it can only be read from the file.
+ *
+ * @assumes The base directory exists; the decorator doesn't create it.
+ * @assumes Only one process at a time adds keys. The index is read once and written as a whole, so keys added by
+ *          another process in the meantime are lost.
+ * @sideEffect Rewrites the whole index file for every key that isn't in it yet.
+ * @sideEffect Deletes the index file when it can't be decoded, and starts with an empty index.
+ * @state Keeps the index in memory for the lifetime of the instance.
+ */
 class KeyRegisterDecorator implements Cache, Clearable
 {
     private array $keys;
 
+    /**
+     * @param string $baseDirectory The directory to keep `key_index` in, usually the inner cache's own directory
+     */
     public function __construct(
         private readonly Cache  & Interfaces\TransformsKeys $cache,
         private readonly string $baseDirectory,
@@ -52,6 +69,9 @@ class KeyRegisterDecorator implements Cache, Clearable
         $this->registerKey($key);
     }
 
+    /**
+     * Removes the entry from the inner cache, but leaves its key in the index.
+     */
     public function remove(array|string $key): void
     {
         $this->cache->remove($key);
@@ -62,6 +82,9 @@ class KeyRegisterDecorator implements Cache, Clearable
         return $this->cache->contains($key);
     }
 
+    /**
+     * Adds the key to the index, without storing a value for it.
+     */
     public function registerKey(array|string $key): void
     {
         $transformedKey = $this->cache->transformKey($key);
@@ -75,6 +98,9 @@ class KeyRegisterDecorator implements Cache, Clearable
         file_put_contents($this->keyFilePath(), json_encode($this->keys, JSON_PRETTY_PRINT));
     }
 
+    /**
+     * Empties the index, then clears the inner cache when it implements `Clearable`.
+     */
     public function clear(): void
     {
         $this->keys = [];
